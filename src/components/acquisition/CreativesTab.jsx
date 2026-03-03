@@ -295,49 +295,31 @@ export default function CreativesTab({ ads, filters, onFiltersChange }) {
             >
               <AdThumbnail ad={ad} size="md" />
               <div className="p-4">
-                {/* Name & status */}
-                <div className="flex items-start justify-between mb-2">
+                {/* Name, grade & status */}
+                <div className="flex items-start gap-2.5 mb-3">
+                  <GradeBadge score={ad.overallScore} size="lg" />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-text-primary truncate">{ad.name}</div>
                     <div className="text-[11px] text-text-tertiary truncate">{ad.campaign}</div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ml-2 ${getStatusColor(ad.status)}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${getStatusColor(ad.status)}`}>
                     {ad.status}
                   </span>
                 </div>
 
-                {/* 6-element Health score rings */}
-                <div className="grid grid-cols-6 gap-1 py-3 border-y border-border-light">
-                  {SCORE_DIMENSIONS.map(dim => (
-                    <ScoreRing key={dim.key} score={ad.scores[dim.key]} size={36} strokeWidth={3} label={dim.label} />
-                  ))}
-                </div>
-
-                {/* Key metrics */}
-                <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-3 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Spend</span>
-                    <span className="font-medium text-text-primary">{formatCurrency(ad.metrics.spend)}</span>
+                {/* 3 key metrics */}
+                <div className="grid grid-cols-3 gap-3 py-3 border-t border-border-light">
+                  <div className="text-center">
+                    <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-0.5">Spend</div>
+                    <div className="text-sm font-semibold text-text-primary">{formatCurrency(ad.metrics.spend)}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Revenue</span>
-                    <span className="font-medium text-text-primary">{formatCurrency(ad.metrics.revenue)}</span>
+                  <div className="text-center">
+                    <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-0.5">ROAS</div>
+                    <div className="text-sm font-semibold text-text-primary">{formatRoas(ad.metrics.roas)}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">ROAS</span>
-                    <span className="font-medium text-text-primary">{formatRoas(ad.metrics.roas)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">CTR</span>
-                    <span className="font-medium text-text-primary">{formatPercent(ad.metrics.ctr)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">CPA</span>
-                    <span className="font-medium text-text-primary">{formatCurrency(ad.metrics.cpa)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Conv</span>
-                    <span className="font-medium text-text-primary">{formatNumber(ad.metrics.conversions)}</span>
+                  <div className="text-center">
+                    <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-0.5">Revenue</div>
+                    <div className="text-sm font-semibold text-text-primary">{formatCurrency(ad.metrics.revenue)}</div>
                   </div>
                 </div>
 

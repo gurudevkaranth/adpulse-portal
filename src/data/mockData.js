@@ -1,14 +1,16 @@
 // Realistic ad creative mock data inspired by Motion, Parker, and GetCrux
 
+import { HOOK_KEYS, VISUAL_KEYS } from './creativeClassifications';
+
 const PLATFORMS = ['Meta', 'TikTok', 'Google', 'YouTube'];
 const FORMATS = ['Video', 'Image', 'Carousel', 'UGC', 'Story'];
 const OBJECTIVES = ['Conversions', 'Traffic', 'Awareness', 'Engagement'];
 const STATUSES = ['Active', 'Scaling', 'Declining', 'Paused', 'Testing'];
 const TAGS = {
-  hook: ['Problem-Solution', 'Social Proof', 'Curiosity', 'Fear of Missing Out', 'Discount/Offer', 'Before-After', 'Testimonial', 'Question Hook'],
+  hook: HOOK_KEYS,
   cta: ['Shop Now', 'Learn More', 'Get Started', 'Try Free', 'Sign Up', 'Buy Now', 'Claim Offer'],
   tone: ['Playful', 'Professional', 'Urgent', 'Emotional', 'Educational', 'Aspirational'],
-  visual: ['Product Close-up', 'Lifestyle', 'Text Overlay', 'Split Screen', 'Talking Head', 'Stop Motion', 'Animation'],
+  visual: VISUAL_KEYS,
 };
 
 // Generate placeholder thumbnails using colored gradients

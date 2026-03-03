@@ -151,12 +151,9 @@ export default function CreativeDetail() {
       {/* =========== HERO SECTION =========== */}
       <div className="bg-white rounded-xl border border-border overflow-hidden">
         <div className="flex">
-          {/* Thumbnail */}
           <div className="w-72 shrink-0">
             <AdThumbnail ad={ad} size="lg" />
           </div>
-
-          {/* Info */}
           <div className="flex-1 p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -182,8 +179,6 @@ export default function CreativeDetail() {
                   ))}
                 </div>
               </div>
-
-              {/* Overall Score */}
               <div className="text-center">
                 <ScoreRing score={ad.overallScore} size={80} strokeWidth={5} />
                 <div className="flex items-center justify-center gap-2 mt-2">
@@ -193,8 +188,6 @@ export default function CreativeDetail() {
                 <div className="text-[10px] text-text-tertiary mt-0.5">Overall Score</div>
               </div>
             </div>
-
-            {/* Quick Stats Row */}
             <div className="grid grid-cols-6 gap-4 mt-6 pt-5 border-t border-border-light">
               {[
                 { label: 'Spend', value: formatCurrency(ad.metrics.spend), trend: avg(recent7, 'spend') - avg(prior7, 'spend') > 0 },
@@ -217,69 +210,122 @@ export default function CreativeDetail() {
         </div>
       </div>
 
-      {/* =========== TWO COLUMN LAYOUT =========== */}
-      <div className="grid grid-cols-3 gap-6">
-
-        {/* =========== LEFT COLUMN (2/3) =========== */}
-        <div className="col-span-2 space-y-6">
-
-          {/* --- PERFORMANCE TREND CHART --- */}
-          <div className="bg-white rounded-xl border border-border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-primary-500" />
-                  Performance Trend
-                </h2>
-                <p className="text-xs text-text-tertiary mt-0.5">Daily performance over the last 30 days</p>
-              </div>
-              <div className="flex gap-1">
-                {CHART_METRICS.map(m => (
-                  <button
-                    key={m.key}
-                    onClick={() => setActiveChart(m.key)}
-                    className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                      activeChart === m.key
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={history} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                  <defs>
-                    <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" tickLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey={activeChart}
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                    fill="url(#colorMetric)"
-                    name={chartMetric.label}
-                    dot={false}
-                    activeDot={{ r: 4, fill: '#6366f1' }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+      {/* =========== HEALTH FUNNEL STRIP (full width) =========== */}
+      <div className="bg-white rounded-xl border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+            <Target className="w-4 h-4 text-indigo-500" />
+            Creative Health
+          </h2>
+          <div className="flex items-center gap-3 text-[10px] text-text-tertiary">
+            {[
+              { grade: 'A', range: '80+', color: 'bg-green-500' },
+              { grade: 'B', range: '60-79', color: 'bg-lime-500' },
+              { grade: 'C', range: '40-59', color: 'bg-amber-500' },
+              { grade: 'D', range: '0-39', color: 'bg-red-500' },
+            ].map(g => (
+              <span key={g.grade} className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${g.color}`} />
+                <span className="font-semibold text-text-secondary">{g.grade}</span>
+                <span>{g.range}</span>
+              </span>
+            ))}
           </div>
+        </div>
+        <div className="grid grid-cols-6 gap-4">
+          {funnelStages.map((stage) => {
+            const Icon = stage.icon;
+            const color = getScoreColor(stage.score);
+            const stageGrade = stage.score >= 80 ? 'A' : stage.score >= 60 ? 'B' : stage.score >= 40 ? 'C' : 'D';
+            return (
+              <div key={stage.label} className="p-4 rounded-lg bg-gray-50 border border-border-light text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Icon className="w-4 h-4" style={{ color }} />
+                  <span className="text-xs font-semibold text-text-primary">{stage.label}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                    stageGrade === 'A' ? 'bg-green-100 text-green-700' :
+                    stageGrade === 'B' ? 'bg-lime-100 text-lime-700' :
+                    stageGrade === 'C' ? 'bg-amber-100 text-amber-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>{stageGrade}</span>
+                </div>
+                <div className="flex justify-center mb-2">
+                  <ScoreRing score={stage.score} size={48} strokeWidth={4} />
+                </div>
+                <p className="text-[10px] text-text-tertiary mb-1.5">{stage.desc}</p>
+                <div className="space-y-0.5">
+                  {stage.metrics.map((m, i) => (
+                    <div key={i} className="text-[11px] text-text-secondary">{m}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* =========== PERFORMANCE TREND CHART (full width) =========== */}
+      <div className="bg-white rounded-xl border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary-500" />
+              Performance Trend
+            </h2>
+            <p className="text-xs text-text-tertiary mt-0.5">Daily performance over the last 30 days</p>
+          </div>
+          <div className="flex gap-1">
+            {CHART_METRICS.map(m => (
+              <button
+                key={m.key}
+                onClick={() => setActiveChart(m.key)}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                  activeChart === m.key
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={history} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+              <defs>
+                <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" tickLine={false} />
+              <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" tickLine={false} axisLine={false} />
+              <Tooltip content={<ChartTooltip />} />
+              <Area
+                type="monotone"
+                dataKey={activeChart}
+                stroke="#6366f1"
+                strokeWidth={2}
+                fill="url(#colorMetric)"
+                name={chartMetric.label}
+                dot={false}
+                activeDot={{ r: 4, fill: '#6366f1' }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* =========== TWO-COLUMN LAYOUT =========== */}
+      <div className="grid grid-cols-5 gap-6">
+
+        {/* =========== LEFT COLUMN (3/5) =========== */}
+        <div className="col-span-3 space-y-6">
 
           {/* --- WHAT'S WORKING / NOT WORKING --- */}
           <div className="grid grid-cols-2 gap-6">
-            {/* Strengths */}
             <div className="bg-white rounded-xl border border-border p-5">
               <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -302,8 +348,6 @@ export default function CreativeDetail() {
                 )}
               </div>
             </div>
-
-            {/* Weaknesses */}
             <div className="bg-white rounded-xl border border-border p-5">
               <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -328,212 +372,203 @@ export default function CreativeDetail() {
             </div>
           </div>
 
-          {/* --- COMPETITIVE INSIGHTS --- */}
-          <div className="bg-white rounded-xl border border-border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+          {/* --- AI RECOMMENDATIONS (integrated) --- */}
+          {creativeAnalysis && (
+            <div className="bg-white rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
-                  <Swords className="w-4 h-4 text-purple-500" />
-                  Competitive Insights
+                  <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Brain className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  AI Recommendations
                 </h2>
-                <p className="text-xs text-text-tertiary mt-0.5">
-                  What competitors are running in similar ad categories
-                </p>
+                <span className="text-xs text-text-tertiary">{creativeAnalysis.fixes.length} suggestions</span>
               </div>
-              <span className="text-xs text-text-tertiary">{competitors.length} competitor ads found</span>
-            </div>
-
-            <div className="space-y-3">
-              {visibleCompetitors.map((comp) => (
-                <div key={comp.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-border-light hover:border-purple-200 transition-colors">
-                  {/* Competitor thumbnail */}
-                  <div className="w-20 h-20 rounded-lg shrink-0 relative overflow-hidden" style={{ background: comp.thumbnail }}>
-                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] text-white font-medium">
-                      {comp.format}
-                    </div>
-                  </div>
-
-                  {/* Competitor info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-text-primary">{comp.brand}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full font-medium">
-                          {comp.type}
-                        </span>
-                        {comp.isActive && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full font-medium">
-                            Active
+              <div className="grid grid-cols-2 gap-4">
+                {creativeAnalysis.fixes.map((fix, idx) => {
+                  const iconMap = {
+                    Hook: { icon: Eye, gradient: 'from-violet-500 to-purple-600' },
+                    Retention: { icon: Clock, gradient: 'from-blue-500 to-cyan-600' },
+                    CTA: { icon: MousePointerClick, gradient: 'from-emerald-500 to-teal-600' },
+                    Fatigue: { icon: AlertTriangle, gradient: 'from-orange-500 to-amber-600' },
+                    Conversion: { icon: ShoppingCart, gradient: 'from-pink-500 to-rose-600' },
+                    Reach: { icon: Megaphone, gradient: 'from-sky-500 to-blue-600' },
+                    Scale: { icon: TrendingUp, gradient: 'from-green-500 to-emerald-600' },
+                  };
+                  const mapped = iconMap[fix.area] || { icon: Sparkles, gradient: 'from-indigo-500 to-purple-600' };
+                  const FixIcon = mapped.icon;
+                  return (
+                    <div key={idx} className="rounded-xl border border-border overflow-hidden hover:shadow-md transition-shadow group">
+                      <div className={`h-1 bg-gradient-to-r ${mapped.gradient}`} />
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${mapped.gradient} flex items-center justify-center`}>
+                              <FixIcon className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-text-primary uppercase tracking-wide">{fix.area}</span>
+                          </div>
+                          <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                            fix.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                            fix.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                            fix.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {fix.severity}
                           </span>
-                        )}
+                        </div>
+                        <div className="text-[11px] text-text-tertiary mb-2">{fix.current}</div>
+                        <p className="text-sm text-text-primary leading-relaxed mb-4">{fix.suggestion}</p>
+                        <div className="flex items-center justify-between pt-3 border-t border-border-light">
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                            <span className="text-xs font-semibold text-green-700">{fix.expectedLift}</span>
+                          </div>
+                          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-text-secondary hover:text-primary-700 rounded-lg text-[11px] font-medium transition-colors group-hover:bg-primary-50 group-hover:text-primary-700">
+                            <Sparkles className="w-3 h-3" />
+                            Generate brief
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold ${getScoreColorClass(comp.overallScore).split(' ')[0]}`}>
-                          Score: {comp.overallScore}
-                        </span>
-                      </div>
                     </div>
-
-                    <p className="text-xs text-text-secondary leading-relaxed mb-2">{comp.observation}</p>
-
-                    <div className="flex items-center gap-4 text-[11px] text-text-tertiary">
-                      <span>{comp.platform}</span>
-                      <span>Est. Spend: {formatCurrency(comp.estimatedSpend)}</span>
-                      <span>Est. Impressions: {formatNumber(comp.estimatedImpressions)}</span>
-                      <span>First seen: {comp.firstSeen}</span>
-                    </div>
-
-                    <div className="flex gap-1 mt-2">
-                      <TagBadge type="hook" value={comp.tags.hook} />
-                      <TagBadge type="cta" value={comp.tags.cta} />
-                      <TagBadge type="visual" value={comp.tags.visual} />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-
-            {competitors.length > 3 && (
-              <button
-                onClick={() => setShowAllCompetitors(!showAllCompetitors)}
-                className="mt-4 w-full flex items-center justify-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 py-2"
-              >
-                {showAllCompetitors ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>Show All {competitors.length} Competitors <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* =========== RIGHT COLUMN (1/3) =========== */}
-        <div className="space-y-6">
+        {/* =========== RIGHT COLUMN (2/5) =========== */}
+        <div className="col-span-2 space-y-6">
 
-          {/* --- HEALTH SCORE --- */}
+          {/* --- GROUPED METRICS --- */}
           <div className="bg-white rounded-xl border border-border p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                <Target className="w-4 h-4 text-indigo-500" />
-                Health
-              </h3>
-              <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                ad.grade === 'A' ? 'bg-green-100 text-green-700' :
-                ad.grade === 'B' ? 'bg-lime-100 text-lime-700' :
-                ad.grade === 'C' ? 'bg-amber-100 text-amber-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                Grade {ad.grade}
-              </div>
-            </div>
+            <h3 className="text-sm font-semibold text-text-primary mb-4">Key Metrics</h3>
 
-            {/* Grading logic */}
-            <div className="mb-4 p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100">
-              <div className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider mb-1.5">How we grade</div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[
-                  { grade: 'A', range: '80+', color: 'bg-green-500' },
-                  { grade: 'B', range: '60-79', color: 'bg-lime-500' },
-                  { grade: 'C', range: '40-59', color: 'bg-amber-500' },
-                  { grade: 'D', range: '0-39', color: 'bg-red-500' },
-                ].map(g => (
-                  <div key={g.grade} className={`text-center p-1.5 rounded ${ad.grade === g.grade ? 'bg-white shadow-sm border border-border-light' : ''}`}>
-                    <div className={`w-2 h-2 rounded-full ${g.color} mx-auto mb-0.5`} />
-                    <div className="text-[10px] font-bold text-text-primary">{g.grade}</div>
-                    <div className="text-[9px] text-text-tertiary">{g.range}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2 space-y-0.5">
-                {[
-                  { label: 'Hook', weight: '15%' },
-                  { label: 'Watch', weight: '15%' },
-                  { label: 'Click', weight: '20%' },
-                  { label: 'Convert', weight: '25%' },
-                  { label: 'Reach', weight: '10%' },
-                  { label: 'Signals', weight: '15%' },
-                ].map(w => (
-                  <div key={w.label} className="flex justify-between text-[9px]">
-                    <span className="text-indigo-500">{w.label}</span>
-                    <span className="text-indigo-700 font-medium">{w.weight}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {funnelStages.map((stage) => {
-                const Icon = stage.icon;
-                const color = getScoreColor(stage.score);
-                const stageGrade = stage.score >= 80 ? 'A' : stage.score >= 60 ? 'B' : stage.score >= 40 ? 'C' : 'D';
-                return (
-                  <div key={stage.label} className="p-3 rounded-lg bg-gray-50 border border-border-light">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" style={{ color }} />
-                        <span className="text-xs font-semibold text-text-primary">{stage.label}</span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                          stageGrade === 'A' ? 'bg-green-100 text-green-700' :
-                          stageGrade === 'B' ? 'bg-lime-100 text-lime-700' :
-                          stageGrade === 'C' ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>{stageGrade}</span>
-                      </div>
-                      <ScoreRing score={stage.score} size={36} strokeWidth={3} />
-                    </div>
-                    <p className="text-[10px] text-text-tertiary mb-1.5">{stage.desc}</p>
-                    <div className="space-y-0.5">
-                      {stage.metrics.map((m, i) => (
-                        <div key={i} className="text-[11px] text-text-secondary">{m}</div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* --- DETAILED METRICS --- */}
-          <div className="bg-white rounded-xl border border-border p-5">
-            <h3 className="text-sm font-semibold text-text-primary mb-4">All Metrics</h3>
-            <div className="space-y-2">
-              {[
+            {[
+              { group: 'Financial', icon: ShoppingCart, metrics: [
                 ['Spend', formatCurrency(ad.metrics.spend)],
                 ['Revenue', formatCurrency(ad.metrics.revenue)],
                 ['ROAS', formatRoas(ad.metrics.roas)],
                 ['CPA', formatCurrency(ad.metrics.cpa)],
                 ['CPC', formatCurrency(ad.metrics.cpc)],
                 ['CPM', formatCurrency(ad.metrics.cpm)],
-                ['CTR', formatPercent(ad.metrics.ctr)],
-                ['Conv Rate', formatPercent(ad.metrics.conversionRate)],
-                ['Link Click Rate', formatPercent(ad.metrics.linkClickRate)],
+              ]},
+              { group: 'Traffic', icon: MousePointerClick, metrics: [
                 ['Impressions', formatNumber(ad.metrics.impressions)],
                 ['Clicks', formatNumber(ad.metrics.clicks)],
+                ['CTR', formatPercent(ad.metrics.ctr)],
+                ['Conv Rate', formatPercent(ad.metrics.conversionRate)],
                 ['Conversions', formatNumber(ad.metrics.conversions)],
+                ['Link Click Rate', formatPercent(ad.metrics.linkClickRate)],
+              ]},
+              { group: 'Creative Quality', icon: Eye, metrics: [
                 ['Thumbstop Rate', formatPercent(ad.metrics.thumbstopRate)],
                 ['1st Frame Retention', formatPercent(ad.metrics.firstFrameRetention)],
                 ['Avg Watch Time', `${ad.metrics.avgWatchTime}s`],
+                ...(ad.metrics.videoRetention15s != null ? [['15s Retention', formatPercent(ad.metrics.videoRetention15s)]] : []),
+                ...(ad.metrics.thruplayRate != null ? [['Thruplay Rate', formatPercent(ad.metrics.thruplayRate)]] : []),
+                ...(ad.metrics.holdRate != null ? [['Hold Rate', formatPercent(ad.metrics.holdRate)]] : []),
+              ]},
+              { group: 'Engagement & Health', icon: Activity, metrics: [
                 ['Est. Reach', formatNumber(ad.metrics.estimatedReach)],
                 ['Frequency', `${ad.metrics.frequency}x`],
                 ['Engagement Rate', formatPercent(ad.metrics.engagementRate)],
                 ['Share Rate', formatPercent(ad.metrics.shareRate)],
                 ['Save Rate', formatPercent(ad.metrics.saveRate)],
                 ['Fatigue Index', `${ad.metrics.fatigueIndex}%`],
-              ].concat(
-                ad.metrics.videoRetention15s != null ? [['15s Retention', formatPercent(ad.metrics.videoRetention15s)]] : [],
-                ad.metrics.thruplayRate != null ? [['Thruplay Rate', formatPercent(ad.metrics.thruplayRate)]] : [],
-                ad.metrics.holdRate != null ? [['Hold Rate', formatPercent(ad.metrics.holdRate)]] : [],
-              ).map(([label, value]) => (
-                <div key={label} className="flex justify-between items-center py-1.5 border-b border-border-light last:border-0">
-                  <span className="text-[11px] text-text-tertiary">{label}</span>
-                  <span className="text-xs font-semibold text-text-primary">{value}</span>
+              ]},
+            ].map(({ group, icon: GroupIcon, metrics }) => (
+              <div key={group} className="mb-4 last:mb-0">
+                <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <GroupIcon className="w-3 h-3" />
+                  {group}
                 </div>
-              ))}
-            </div>
+                <div className="space-y-0">
+                  {metrics.map(([label, value]) => (
+                    <div key={label} className="flex justify-between items-center py-1.5 border-b border-border-light last:border-0">
+                      <span className="text-[11px] text-text-tertiary">{label}</span>
+                      <span className="text-xs font-semibold text-text-primary">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* --- META --- */}
+          {/* --- ELEMENT ANALYSIS --- */}
+          {creativeAnalysis && (
+            <div className="bg-white rounded-xl border border-border p-5">
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+                <Target className="w-4 h-4 text-purple-500" />
+                Element Analysis
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {creativeAnalysis.elements.map((el) => (
+                  <div key={el.element} className="text-center p-2.5 rounded-lg bg-gray-50 border border-border-light">
+                    <ScoreRing score={el.score} size={36} strokeWidth={3} />
+                    <div className="text-[10px] font-semibold text-text-primary mt-1.5">{el.element}</div>
+                    <div className="text-[9px] text-text-tertiary mt-0.5 truncate">{el.label}</div>
+                    <div className={`mt-1 w-1.5 h-1.5 rounded-full mx-auto ${
+                      el.impact === 'positive' ? 'bg-green-500' :
+                      el.impact === 'neutral' ? 'bg-amber-500' :
+                      'bg-red-500'
+                    }`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- AUDIENCE SIGNALS --- */}
+          {creativeAnalysis && (
+            <div className="bg-white rounded-xl border border-border p-5">
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-blue-500" />
+                Audience Signals
+              </h3>
+              <div className="flex items-center gap-3 mb-3 p-2.5 bg-gray-50 rounded-lg">
+                <ScoreRing score={creativeAnalysis.audienceSignals.sentiment} size={40} strokeWidth={3} />
+                <div>
+                  <span className={`text-sm font-bold ${
+                    creativeAnalysis.audienceSignals.sentiment >= 75 ? 'text-green-600' :
+                    creativeAnalysis.audienceSignals.sentiment >= 50 ? 'text-amber-600' : 'text-red-600'
+                  }`}>{creativeAnalysis.audienceSignals.sentimentLabel}</span>
+                  <div className="text-[10px] text-text-tertiary">Sentiment</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2 mb-3">
+                {[
+                  { label: 'Likes', value: creativeAnalysis.audienceSignals.engagementBreakdown.likes, icon: Heart, color: 'text-red-400' },
+                  { label: 'Comments', value: creativeAnalysis.audienceSignals.engagementBreakdown.comments, icon: MessageSquare, color: 'text-blue-400' },
+                  { label: 'Shares', value: creativeAnalysis.audienceSignals.engagementBreakdown.shares, icon: Share2, color: 'text-green-400' },
+                  { label: 'Saves', value: creativeAnalysis.audienceSignals.engagementBreakdown.saves, icon: Bookmark, color: 'text-purple-400' },
+                ].map(({ label, value, icon: SigIcon, color }) => (
+                  <div key={label} className="text-center p-2 bg-gray-50 rounded-lg">
+                    <SigIcon className={`w-3.5 h-3.5 ${color} mx-auto mb-1`} />
+                    <div className="text-xs font-bold text-text-primary">{formatNumber(value)}</div>
+                    <div className="text-[9px] text-text-tertiary">{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-1">
+                {creativeAnalysis.audienceSignals.topAngles.map((angle, i) => (
+                  <div key={`a-${i}`} className="flex items-start gap-1.5 text-[10px]">
+                    <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
+                    <span className="text-text-secondary">{angle}</span>
+                  </div>
+                ))}
+                {creativeAnalysis.audienceSignals.topObjections.map((obj, i) => (
+                  <div key={`o-${i}`} className="flex items-start gap-1.5 text-[10px]">
+                    <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
+                    <span className="text-text-secondary">{obj}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- DETAILS / META --- */}
           <div className="bg-white rounded-xl border border-border p-5">
             <h3 className="text-sm font-semibold text-text-primary mb-3">Details</h3>
             <div className="space-y-2 text-xs">
@@ -562,162 +597,74 @@ export default function CreativeDetail() {
         </div>
       </div>
 
-      {/* =========== AI RECOMMENDATIONS (GetCrux-style blocks) =========== */}
-      {creativeAnalysis && (
-        <div className="space-y-6">
-
-          {/* --- Section Header --- */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-4.5 h-4.5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-text-primary">AI Recommendations</h2>
-                <p className="text-xs text-text-tertiary">Creative intelligence powered by performance data & competitive signals</p>
-              </div>
-            </div>
+      {/* =========== COMPETITIVE INSIGHTS (full width, bottom) =========== */}
+      <div className="bg-white rounded-xl border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+              <Swords className="w-4 h-4 text-purple-500" />
+              Competitive Insights
+            </h2>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              What competitors are running in similar ad categories
+            </p>
           </div>
-
-          {/* --- Recommendation Card Grid --- */}
-          <div className="grid grid-cols-2 gap-4">
-            {creativeAnalysis.fixes.map((fix, idx) => {
-              const iconMap = {
-                Hook: { icon: Eye, gradient: 'from-violet-500 to-purple-600' },
-                Retention: { icon: Clock, gradient: 'from-blue-500 to-cyan-600' },
-                CTA: { icon: MousePointerClick, gradient: 'from-emerald-500 to-teal-600' },
-                Fatigue: { icon: AlertTriangle, gradient: 'from-orange-500 to-amber-600' },
-                Conversion: { icon: ShoppingCart, gradient: 'from-pink-500 to-rose-600' },
-                Reach: { icon: Megaphone, gradient: 'from-sky-500 to-blue-600' },
-                Scale: { icon: TrendingUp, gradient: 'from-green-500 to-emerald-600' },
-              };
-              const mapped = iconMap[fix.area] || { icon: Sparkles, gradient: 'from-indigo-500 to-purple-600' };
-              const FixIcon = mapped.icon;
-
-              return (
-                <div key={idx} className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md transition-shadow group">
-                  {/* Card top accent */}
-                  <div className={`h-1 bg-gradient-to-r ${mapped.gradient}`} />
-
-                  <div className="p-5">
-                    {/* Category + severity */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${mapped.gradient} flex items-center justify-center`}>
-                          <FixIcon className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <span className="text-xs font-bold text-text-primary uppercase tracking-wide">{fix.area}</span>
-                      </div>
-                      <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                        fix.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                        fix.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                        fix.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                        {fix.severity}
-                      </span>
-                    </div>
-
-                    {/* What's wrong */}
-                    <div className="text-[11px] text-text-tertiary mb-2">{fix.current}</div>
-
-                    {/* Recommendation */}
-                    <p className="text-sm text-text-primary leading-relaxed mb-4">{fix.suggestion}</p>
-
-                    {/* Impact + action */}
-                    <div className="flex items-center justify-between pt-3 border-t border-border-light">
-                      <div className="flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                        <span className="text-xs font-semibold text-green-700">{fix.expectedLift}</span>
-                      </div>
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-text-secondary hover:text-primary-700 rounded-lg text-[11px] font-medium transition-colors group-hover:bg-primary-50 group-hover:text-primary-700">
-                        <Sparkles className="w-3 h-3" />
-                        Generate brief
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* --- Bottom row: Element Analysis + Audience Signals --- */}
-          <div className="grid grid-cols-5 gap-4">
-
-            {/* Element analysis — compact horizontal cards */}
-            <div className="col-span-3 bg-white rounded-xl border border-border p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-purple-500" />
-                Element Analysis
-              </h3>
-              <div className="grid grid-cols-5 gap-2">
-                {creativeAnalysis.elements.map((el) => (
-                  <div key={el.element} className="text-center p-2.5 rounded-lg bg-gray-50 border border-border-light">
-                    <ScoreRing score={el.score} size={36} strokeWidth={3} />
-                    <div className="text-[10px] font-semibold text-text-primary mt-1.5">{el.element}</div>
-                    <div className="text-[9px] text-text-tertiary mt-0.5 truncate">{el.label}</div>
-                    <div className={`mt-1 w-1.5 h-1.5 rounded-full mx-auto ${
-                      el.impact === 'positive' ? 'bg-green-500' :
-                      el.impact === 'neutral' ? 'bg-amber-500' :
-                      'bg-red-500'
-                    }`} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Audience signals — compact */}
-            <div className="col-span-2 bg-white rounded-xl border border-border p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-blue-500" />
-                Audience Signals
-              </h3>
-
-              <div className="flex items-center gap-3 mb-3 p-2.5 bg-gray-50 rounded-lg">
-                <ScoreRing score={creativeAnalysis.audienceSignals.sentiment} size={40} strokeWidth={3} />
-                <div>
-                  <span className={`text-sm font-bold ${
-                    creativeAnalysis.audienceSignals.sentiment >= 75 ? 'text-green-600' :
-                    creativeAnalysis.audienceSignals.sentiment >= 50 ? 'text-amber-600' : 'text-red-600'
-                  }`}>{creativeAnalysis.audienceSignals.sentimentLabel}</span>
-                  <div className="text-[10px] text-text-tertiary">Sentiment</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                {[
-                  { label: 'Likes', value: creativeAnalysis.audienceSignals.engagementBreakdown.likes, icon: Heart, color: 'text-red-400' },
-                  { label: 'Comments', value: creativeAnalysis.audienceSignals.engagementBreakdown.comments, icon: MessageSquare, color: 'text-blue-400' },
-                  { label: 'Shares', value: creativeAnalysis.audienceSignals.engagementBreakdown.shares, icon: Share2, color: 'text-green-400' },
-                  { label: 'Saves', value: creativeAnalysis.audienceSignals.engagementBreakdown.saves, icon: Bookmark, color: 'text-purple-400' },
-                ].map(({ label, value, icon: Icon, color }) => (
-                  <div key={label} className="text-center p-2 bg-gray-50 rounded-lg">
-                    <Icon className={`w-3.5 h-3.5 ${color} mx-auto mb-1`} />
-                    <div className="text-xs font-bold text-text-primary">{formatNumber(value)}</div>
-                    <div className="text-[9px] text-text-tertiary">{label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Key signals list */}
-              <div className="space-y-1">
-                {creativeAnalysis.audienceSignals.topAngles.map((angle, i) => (
-                  <div key={`a-${i}`} className="flex items-start gap-1.5 text-[10px]">
-                    <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
-                    <span className="text-text-secondary">{angle}</span>
-                  </div>
-                ))}
-                {creativeAnalysis.audienceSignals.topObjections.map((obj, i) => (
-                  <div key={`o-${i}`} className="flex items-start gap-1.5 text-[10px]">
-                    <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
-                    <span className="text-text-secondary">{obj}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <span className="text-xs text-text-tertiary">{competitors.length} competitor ads found</span>
         </div>
-      )}
+        <div className="space-y-3">
+          {visibleCompetitors.map((comp) => (
+            <div key={comp.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-border-light hover:border-purple-200 transition-colors">
+              <div className="w-20 h-20 rounded-lg shrink-0 relative overflow-hidden" style={{ background: comp.thumbnail }}>
+                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] text-white font-medium">
+                  {comp.format}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-text-primary">{comp.brand}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full font-medium">
+                      {comp.type}
+                    </span>
+                    {comp.isActive && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full font-medium">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-xs font-bold ${getScoreColorClass(comp.overallScore).split(' ')[0]}`}>
+                    Score: {comp.overallScore}
+                  </span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed mb-2">{comp.observation}</p>
+                <div className="flex items-center gap-4 text-[11px] text-text-tertiary">
+                  <span>{comp.platform}</span>
+                  <span>Est. Spend: {formatCurrency(comp.estimatedSpend)}</span>
+                  <span>Est. Impressions: {formatNumber(comp.estimatedImpressions)}</span>
+                  <span>First seen: {comp.firstSeen}</span>
+                </div>
+                <div className="flex gap-1 mt-2">
+                  <TagBadge type="hook" value={comp.tags.hook} />
+                  <TagBadge type="cta" value={comp.tags.cta} />
+                  <TagBadge type="visual" value={comp.tags.visual} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {competitors.length > 3 && (
+          <button
+            onClick={() => setShowAllCompetitors(!showAllCompetitors)}
+            className="mt-4 w-full flex items-center justify-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 py-2"
+          >
+            {showAllCompetitors ? (
+              <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+            ) : (
+              <>Show All {competitors.length} Competitors <ChevronDown className="w-3.5 h-3.5" /></>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
