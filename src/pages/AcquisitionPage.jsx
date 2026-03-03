@@ -14,7 +14,7 @@ import TopPerformersTab from '../components/acquisition/TopPerformersTab';
 import ComparativeTab from '../components/acquisition/ComparativeTab';
 
 export default function AcquisitionPage() {
-  const { filters, activeSubTab } = useOutletContext();
+  const { filters, setFilters, activeSubTab } = useOutletContext();
 
   // Single shared data source
   const ads = useMemo(() => generateAds(30), []);
@@ -25,21 +25,21 @@ export default function AcquisitionPage() {
   const renderSubTab = () => {
     switch (activeSubTab) {
       case 'channels':
-        return <ChannelsTab channelChart={channelChart} />;
+        return <ChannelsTab channelChart={channelChart} filters={filters} onFiltersChange={setFilters} />;
       case 'creatives':
-        return <CreativesTab ads={ads} filters={filters} />;
+        return <CreativesTab ads={ads} filters={filters} onFiltersChange={setFilters} />;
       case 'campaigns':
-        return <CampaignsTab data={campaigns} />;
+        return <CampaignsTab data={campaigns} filters={filters} onFiltersChange={setFilters} />;
       case 'adSets':
-        return <AdSetsTab campaigns={campaigns} />;
+        return <AdSetsTab campaigns={campaigns} filters={filters} onFiltersChange={setFilters} />;
       case 'landingPages':
-        return <LandingPagesTab data={landingPages} />;
+        return <LandingPagesTab data={landingPages} filters={filters} onFiltersChange={setFilters} />;
       case 'topPerformers':
         return <TopPerformersTab ads={ads} />;
       case 'comparative':
         return <ComparativeTab ads={ads} />;
       default:
-        return <ChannelsTab channelChart={channelChart} />;
+        return <ChannelsTab channelChart={channelChart} filters={filters} onFiltersChange={setFilters} />;
     }
   };
 

@@ -9,15 +9,8 @@ export const ROUTE_CONFIG = {
   },
   '/analyze/acquisition': {
     breadcrumbs: [{ label: 'Analyze', icon: BarChart3 }, { label: 'Acquisition' }],
-    subTabs: [
-      { key: 'channels', label: 'Channels' },
-      { key: 'creatives', label: 'Creatives' },
-      { key: 'campaigns', label: 'Campaigns' },
-      { key: 'adSets', label: 'Ad Sets' },
-      { key: 'landingPages', label: 'Landing Pages' },
-      { key: 'topPerformers', label: 'Top Performers' },
-      { key: 'comparative', label: 'Comparative' },
-    ],
+    // Sub-tab navigation is handled by the sidebar; no top-bar sub-tabs needed
+    validTabs: ['channels', 'creatives', 'campaigns', 'adSets', 'landingPages', 'topPerformers', 'comparative'],
     showFilterBar: true,
   },
   '/analyze/conversion': {

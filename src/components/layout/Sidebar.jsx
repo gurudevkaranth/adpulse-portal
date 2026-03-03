@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, ChevronDown, Zap,
   Star, HelpCircle, Settings,
   Activity, Layers, Filter, Globe, Target, HeartPulse, Brain,
+  FileText, Image,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -18,7 +19,16 @@ const NAV_GROUPS = [
   {
     label: 'Analyze', icon: BarChart3,
     items: [
-      { to: '/analyze/acquisition', icon: TrendingUp, label: 'Acquisition' },
+      {
+        to: '/analyze/acquisition', icon: TrendingUp, label: 'Acquisition',
+        children: [
+          { to: '/analyze/acquisition', icon: Globe, label: 'Channels', tab: 'channels' },
+          { to: '/analyze/acquisition', icon: Target, label: 'Campaigns', tab: 'campaigns' },
+          { to: '/analyze/acquisition', icon: Layers, label: 'Ad Sets', tab: 'adSets' },
+          { to: '/analyze/acquisition', icon: Image, label: 'Creatives', tab: 'creatives' },
+          { to: '/analyze/acquisition', icon: FileText, label: 'Landing Pages', tab: 'landingPages' },
+        ],
+      },
       { to: '/analyze/conversion', icon: ShoppingCart, label: 'Conversion' },
     ],
   },
@@ -42,7 +52,7 @@ const BOTTOM_LINKS = [
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [expandedGroups, setExpandedGroups] = useState({ 'Analyze': true, 'Creative Intel': true });
+  const [expandedGroups, setExpandedGroups] = useState({ 'Analyze': true, 'Creative Intel': true, 'Acquisition': true });
   const [demoMode, setDemoMode] = useState(false);
 
   const toggleGroup = (label) => {
@@ -52,6 +62,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   const isGroupActive = (group) => {
     return group.items.some(item => {
       if (item.to === '/') return location.pathname === '/';
+      if (item.children) return item.children.some(c => isItemActive(c));
       if (item.tab) {
         const params = new URLSearchParams(location.search);
         return location.pathname === item.to && params.get('tab') === item.tab;
@@ -66,6 +77,8 @@ export default function Sidebar({ collapsed, onToggle }) {
       const params = new URLSearchParams(location.search);
       return location.pathname === item.to && params.get('tab') === item.tab;
     }
+    // For parent items with children, active if any child is active
+    if (item.children) return item.children.some(c => isItemActive(c));
     return location.pathname.startsWith(item.to);
   };
 
@@ -73,6 +86,11 @@ export default function Sidebar({ collapsed, onToggle }) {
     if (item.tab) {
       e.preventDefault();
       navigate(`${item.to}?tab=${item.tab}`);
+    }
+    // For parent items with children, toggle expansion instead of navigating
+    if (item.children) {
+      e.preventDefault();
+      setExpandedGroups(prev => ({ ...prev, [item.label]: !prev[item.label] }));
     }
   };
 
@@ -140,28 +158,61 @@ export default function Sidebar({ collapsed, onToggle }) {
             {/* Group items */}
             <div className={`space-y-0.5 ${
               group.label && !collapsed
-                ? `overflow-hidden transition-all duration-200 ${expandedGroups[group.label] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`
+                ? `overflow-hidden transition-all duration-200 ${expandedGroups[group.label] ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`
                 : ''
             }`}>
               {group.items.map((item, idx) => (
-                <NavLink
-                  key={`${item.to}-${item.tab || idx}`}
-                  to={item.tab ? `${item.to}?tab=${item.tab}` : item.to}
-                  end={item.to === '/' && !item.tab}
-                  onClick={(e) => handleNavClick(e, item)}
-                  className={() =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      group.label && !collapsed ? 'ml-2' : ''
-                    } ${
-                      isItemActive(item)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-text-secondary hover:bg-gray-50 hover:text-text-primary'
-                    }`
-                  }
-                >
-                  <item.icon className="w-[18px] h-[18px] shrink-0" />
-                  {!collapsed && <span>{item.label}</span>}
-                </NavLink>
+                <div key={`${item.to}-${item.tab || idx}`}>
+                  <NavLink
+                    to={item.tab ? `${item.to}?tab=${item.tab}` : item.to}
+                    end={item.to === '/' && !item.tab}
+                    onClick={(e) => handleNavClick(e, item)}
+                    className={() =>
+                      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        group.label && !collapsed ? 'ml-2' : ''
+                      } ${
+                        isItemActive(item)
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-text-secondary hover:bg-gray-50 hover:text-text-primary'
+                      }`
+                    }
+                  >
+                    <item.icon className="w-[18px] h-[18px] shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1">{item.label}</span>
+                        {item.children && (
+                          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${expandedGroups[item.label] ? '' : '-rotate-90'}`} />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+
+                  {/* Expandable children (e.g., Acquisition sub-pages) */}
+                  {item.children && !collapsed && (
+                    <div className={`space-y-0.5 overflow-hidden transition-all duration-200 ${
+                      expandedGroups[item.label] ? 'max-h-96 opacity-100 mt-0.5' : 'max-h-0 opacity-0'
+                    }`}>
+                      {item.children.map((child) => (
+                        <NavLink
+                          key={`${child.to}-${child.tab}`}
+                          to={`${child.to}?tab=${child.tab}`}
+                          onClick={(e) => handleNavClick(e, child)}
+                          className={() =>
+                            `flex items-center gap-3 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors ml-6 ${
+                              isItemActive(child)
+                                ? 'bg-primary-50 text-primary-700'
+                                : 'text-text-tertiary hover:bg-gray-50 hover:text-text-secondary'
+                            }`
+                          }
+                        >
+                          <child.icon className="w-[15px] h-[15px] shrink-0" />
+                          <span>{child.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

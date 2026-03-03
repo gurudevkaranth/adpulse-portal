@@ -25,10 +25,11 @@ export default function AppLayout() {
   // Read ?tab= param from URL to set active sub-tab (e.g., from sidebar links)
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && routeConfig.subTabs?.some(t => t.key === tabParam)) {
+    const validTabs = routeConfig.validTabs || routeConfig.subTabs?.map(t => t.key) || [];
+    if (tabParam && validTabs.includes(tabParam)) {
       setActiveSubTab(tabParam);
-    } else if (routeConfig.subTabs?.length) {
-      setActiveSubTab(routeConfig.subTabs[0].key);
+    } else if (validTabs.length) {
+      setActiveSubTab(validTabs[0]);
     }
   }, [location.pathname, searchParams]);
 
@@ -49,7 +50,7 @@ export default function AppLayout() {
           activeSubTab={activeSubTab}
           onSubTabChange={setActiveSubTab}
         />
-        {routeConfig.showFilterBar && (
+        {routeConfig.showFilterBar && !routeConfig.validTabs && (
           <FilterBar filters={filters} onFiltersChange={setFilters} />
         )}
         <main className="p-6">
