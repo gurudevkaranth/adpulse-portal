@@ -1,0 +1,67 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  lint-typecheck-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - run: npm test -- --run
+        if: hashFiles('vitest.config.*') != ''
+
+  deploy-qa:
+    needs: lint-typecheck-build
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: |
+          gcloud run deploy adpulse-web-qa \
+            --source=. \
+            --region=us-central1 \
+            --project=otb-dev-platform \
+            --allow-unauthenticated \
+            --set-env-vars="VITE_API_BASE_URL=https://qa.app.outoftheblue.ai"
+
+  deploy-prod:
+    needs: lint-typecheck-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: |
+          gcloud run deploy adpulse-web \
+            --source=. \
+            --region=us-central1 \
+            --project=otb-dev-platform \
+            --allow-unauthenticated \
+            --set-env-vars="VITE_API_BASE_URL=https://app.outoftheblue.ai"
