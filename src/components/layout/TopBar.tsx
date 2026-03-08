@@ -45,8 +45,9 @@ export default function TopBar({ filters, onFiltersChange, activeSubTab, onSubTa
             onChange={(val) => onFiltersChange?.({ ...filters, dateRange: val })}
           />
           <button
-            className="p-2 hover:bg-gray-100 rounded-lg text-text-tertiary hover:text-text-primary transition-colors"
-            title="Refresh"
+            className="p-2 hover:bg-gray-100 rounded-lg text-text-tertiary hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            title="Refresh data"
+            aria-label="Refresh data"
           >
             <RefreshCw className="w-4 h-4" />
           </button>

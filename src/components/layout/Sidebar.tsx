@@ -259,7 +259,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {BOTTOM_LINKS.map(item => (
           <button
             key={item.label}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-gray-50 hover:text-text-primary transition-colors"
+            aria-label={item.label}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-gray-50 hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           >
             <item.icon className="w-[18px] h-[18px] shrink-0" />
             {!collapsed && <span>{item.label}</span>}

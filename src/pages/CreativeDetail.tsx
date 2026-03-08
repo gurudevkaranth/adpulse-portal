@@ -24,6 +24,7 @@ import ScoreRing from '../components/shared/ScoreRing';
 import AdThumbnail from '../components/shared/AdThumbnail';
 import TagBadge from '../components/shared/TagBadge';
 import GradeBadge from '../components/shared/GradeBadge';
+import { LoadingSpinner } from '../components/shared/LoadingSkeleton';
 
 // Custom tooltip for charts
 function ChartTooltip({ active, payload, label }) {
@@ -49,7 +50,7 @@ function MetricTrend({ current, previous }) {
   const isUp = pctChange > 2;
   const isDown = pctChange < -2;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${
       isUp ? 'text-green-600' : isDown ? 'text-red-600' : 'text-gray-400'
     }`}>
       {isUp ? <TrendingUp className="w-3 h-3" /> : isDown ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
@@ -66,7 +67,7 @@ function PriorityBadge({ priority }) {
     low: 'bg-green-50 text-green-700 border-green-200',
   };
   return (
-    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border uppercase tracking-wider ${styles[priority]}`}>
+    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border uppercase tracking-wider ${styles[priority]}`}>
       {priority}
     </span>
   );
@@ -100,11 +101,7 @@ export default function CreativeDetail() {
   const creativeAnalysis = detail.data?.analysis || null;
 
   if (detail.loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
-      </div>
-    );
+    return <LoadingSpinner className="h-96" />;
   }
 
   if (!ad) {
@@ -145,7 +142,7 @@ export default function CreativeDetail() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate('/analyze/acquisition?tab=creatives')}
-          className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
+          className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-lg px-1.5 py-0.5 -ml-1.5"
         >
           <ArrowLeft className="w-4 h-4" />
           Creatives
@@ -156,8 +153,8 @@ export default function CreativeDetail() {
 
       {/* =========== HERO SECTION =========== */}
       <div className="bg-white rounded-xl border border-border overflow-hidden">
-        <div className="flex">
-          <div className="w-72 shrink-0">
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-72 shrink-0">
             <AdThumbnail ad={ad} size="lg" />
           </div>
           <div className="flex-1 p-6">
@@ -191,10 +188,10 @@ export default function CreativeDetail() {
                   <GradeBadge score={ad.overallScore} size="lg" />
                   <span className="text-xs font-semibold text-text-secondary">Grade {ad.grade}</span>
                 </div>
-                <div className="text-[10px] text-text-tertiary mt-0.5">Overall Score</div>
+                <div className="text-xs text-text-tertiary mt-0.5">Overall Score</div>
               </div>
             </div>
-            <div className="grid grid-cols-6 gap-4 mt-6 pt-5 border-t border-border-light">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 mt-6 pt-5 border-t border-border-light">
               {[
                 { label: 'Spend', value: formatCurrency(ad.metrics.spend), trend: avg(recent7, 'spend') - avg(prior7, 'spend') > 0 },
                 { label: 'Revenue', value: formatCurrency(ad.metrics.revenue), trend: avg(recent7, 'revenue') - avg(prior7, 'revenue') > 0 },
@@ -204,9 +201,9 @@ export default function CreativeDetail() {
                 { label: 'Conversions', value: formatNumber(ad.metrics.conversions), trend: avg(recent7, 'conversions') - avg(prior7, 'conversions') > 0 },
               ].map(stat => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-1">{stat.label}</div>
+                  <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">{stat.label}</div>
                   <div className="text-lg font-bold text-text-primary">{stat.value}</div>
-                  <div className={`text-[10px] font-medium ${stat.trend ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-xs font-medium ${stat.trend ? 'text-green-600' : 'text-red-600'}`}>
                     {stat.trend ? '7d trending up' : '7d trending down'}
                   </div>
                 </div>
@@ -223,7 +220,7 @@ export default function CreativeDetail() {
             <Target className="w-4 h-4 text-indigo-500" />
             Creative Health
           </h2>
-          <div className="flex items-center gap-3 text-[10px] text-text-tertiary">
+          <div className="flex items-center gap-3 text-xs text-text-tertiary">
             {[
               { grade: 'A', range: '80+', color: 'bg-green-500' },
               { grade: 'B', range: '60-79', color: 'bg-lime-500' },
@@ -238,17 +235,17 @@ export default function CreativeDetail() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {funnelStages.map((stage) => {
             const Icon = stage.icon;
             const color = getScoreColor(stage.score);
             const stageGrade = stage.score >= 80 ? 'A' : stage.score >= 60 ? 'B' : stage.score >= 40 ? 'C' : 'D';
             return (
-              <div key={stage.label} className="p-4 rounded-lg bg-gray-50 border border-border-light text-center">
+              <div key={stage.label} className="p-4 rounded-lg bg-gray-50 border border-border-light text-center hover:bg-white hover:shadow-sm hover:border-border transition-all duration-150">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Icon className="w-4 h-4" style={{ color }} />
                   <span className="text-xs font-semibold text-text-primary">{stage.label}</span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
                     stageGrade === 'A' ? 'bg-green-100 text-green-700' :
                     stageGrade === 'B' ? 'bg-lime-100 text-lime-700' :
                     stageGrade === 'C' ? 'bg-amber-100 text-amber-700' :
@@ -258,10 +255,10 @@ export default function CreativeDetail() {
                 <div className="flex justify-center mb-2">
                   <ScoreRing score={stage.score} size={48} strokeWidth={4} />
                 </div>
-                <p className="text-[10px] text-text-tertiary mb-1.5">{stage.desc}</p>
+                <p className="text-xs text-text-tertiary mb-1.5">{stage.desc}</p>
                 <div className="space-y-0.5">
                   {stage.metrics.map((m, i) => (
-                    <div key={i} className="text-[11px] text-text-secondary">{m}</div>
+                    <div key={i} className="text-xs text-text-secondary">{m}</div>
                   ))}
                 </div>
               </div>
@@ -280,14 +277,14 @@ export default function CreativeDetail() {
             </h2>
             <p className="text-xs text-text-tertiary mt-0.5">Daily performance over the last 30 days</p>
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {CHART_METRICS.map(m => (
               <button
                 key={m.key}
                 onClick={() => setActiveChart(m.key)}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 ${
                   activeChart === m.key
-                    ? 'bg-primary-600 text-white'
+                    ? 'bg-primary-600 text-white shadow-sm'
                     : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
                 }`}
               >
@@ -325,14 +322,14 @@ export default function CreativeDetail() {
       </div>
 
       {/* =========== TWO-COLUMN LAYOUT =========== */}
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
         {/* =========== LEFT COLUMN (3/5) =========== */}
-        <div className="col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
 
           {/* --- WHAT'S WORKING / NOT WORKING --- */}
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-border p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
               <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                 What's Working
@@ -346,7 +343,7 @@ export default function CreativeDetail() {
                         <span className="text-xs font-semibold text-green-700">{item.metric}</span>
                         <span className="text-sm font-bold text-green-800">{item.value}</span>
                       </div>
-                      <p className="text-[11px] text-green-600 mt-0.5">{item.detail}</p>
+                      <p className="text-xs text-green-600 mt-0.5">{item.detail}</p>
                     </div>
                   </div>
                 )) : (
@@ -354,7 +351,7 @@ export default function CreativeDetail() {
                 )}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-border p-5">
+            <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
               <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
                 What Needs Work
@@ -368,7 +365,7 @@ export default function CreativeDetail() {
                         <span className="text-xs font-semibold text-red-700">{item.metric}</span>
                         <span className="text-sm font-bold text-red-800">{item.value}</span>
                       </div>
-                      <p className="text-[11px] text-red-600 mt-0.5">{item.detail}</p>
+                      <p className="text-xs text-red-600 mt-0.5">{item.detail}</p>
                     </div>
                   </div>
                 )) : (
@@ -414,7 +411,7 @@ export default function CreativeDetail() {
                             </div>
                             <span className="text-xs font-bold text-text-primary uppercase tracking-wide">{fix.area}</span>
                           </div>
-                          <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                          <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                             fix.severity === 'critical' ? 'bg-red-100 text-red-700' :
                             fix.severity === 'high' ? 'bg-orange-100 text-orange-700' :
                             fix.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
@@ -423,14 +420,14 @@ export default function CreativeDetail() {
                             {fix.severity}
                           </span>
                         </div>
-                        <div className="text-[11px] text-text-tertiary mb-2">{fix.current}</div>
+                        <div className="text-xs text-text-tertiary mb-2">{fix.current}</div>
                         <p className="text-sm text-text-primary leading-relaxed mb-4">{fix.suggestion}</p>
                         <div className="flex items-center justify-between pt-3 border-t border-border-light">
                           <div className="flex items-center gap-1.5">
                             <TrendingUp className="w-3.5 h-3.5 text-green-500" />
                             <span className="text-xs font-semibold text-green-700">{fix.expectedLift}</span>
                           </div>
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-text-secondary hover:text-primary-700 rounded-lg text-[11px] font-medium transition-colors group-hover:bg-primary-50 group-hover:text-primary-700">
+                          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-text-secondary hover:text-primary-700 rounded-lg text-xs font-medium transition-colors group-hover:bg-primary-50 group-hover:text-primary-700">
                             <Sparkles className="w-3 h-3" />
                             Generate brief
                           </button>
@@ -445,7 +442,7 @@ export default function CreativeDetail() {
         </div>
 
         {/* =========== RIGHT COLUMN (2/5) =========== */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
 
           {/* --- GROUPED METRICS --- */}
           <div className="bg-white rounded-xl border border-border p-5">
@@ -486,14 +483,14 @@ export default function CreativeDetail() {
               ]},
             ].map(({ group, icon: GroupIcon, metrics }) => (
               <div key={group} className="mb-4 last:mb-0">
-                <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <GroupIcon className="w-3 h-3" />
                   {group}
                 </div>
                 <div className="space-y-0">
                   {metrics.map(([label, value]) => (
                     <div key={label} className="flex justify-between items-center py-1.5 border-b border-border-light last:border-0">
-                      <span className="text-[11px] text-text-tertiary">{label}</span>
+                      <span className="text-xs text-text-tertiary">{label}</span>
                       <span className="text-xs font-semibold text-text-primary">{value}</span>
                     </div>
                   ))}
@@ -513,8 +510,8 @@ export default function CreativeDetail() {
                 {creativeAnalysis.elements.map((el) => (
                   <div key={el.element} className="text-center p-2.5 rounded-lg bg-gray-50 border border-border-light">
                     <ScoreRing score={el.score} size={36} strokeWidth={3} />
-                    <div className="text-[10px] font-semibold text-text-primary mt-1.5">{el.element}</div>
-                    <div className="text-[9px] text-text-tertiary mt-0.5 truncate">{el.label}</div>
+                    <div className="text-xs font-semibold text-text-primary mt-1.5">{el.element}</div>
+                    <div className="text-xs text-text-tertiary mt-0.5 truncate">{el.label}</div>
                     <div className={`mt-1 w-1.5 h-1.5 rounded-full mx-auto ${
                       el.impact === 'positive' ? 'bg-green-500' :
                       el.impact === 'neutral' ? 'bg-amber-500' :
@@ -540,7 +537,7 @@ export default function CreativeDetail() {
                     creativeAnalysis.audienceSignals.sentiment >= 75 ? 'text-green-600' :
                     creativeAnalysis.audienceSignals.sentiment >= 50 ? 'text-amber-600' : 'text-red-600'
                   }`}>{creativeAnalysis.audienceSignals.sentimentLabel}</span>
-                  <div className="text-[10px] text-text-tertiary">Sentiment</div>
+                  <div className="text-xs text-text-tertiary">Sentiment</div>
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-2 mb-3">
@@ -553,19 +550,19 @@ export default function CreativeDetail() {
                   <div key={label} className="text-center p-2 bg-gray-50 rounded-lg">
                     <SigIcon className={`w-3.5 h-3.5 ${color} mx-auto mb-1`} />
                     <div className="text-xs font-bold text-text-primary">{formatNumber(value)}</div>
-                    <div className="text-[9px] text-text-tertiary">{label}</div>
+                    <div className="text-xs text-text-tertiary">{label}</div>
                   </div>
                 ))}
               </div>
               <div className="space-y-1">
                 {creativeAnalysis.audienceSignals.topAngles.map((angle, i) => (
-                  <div key={`a-${i}`} className="flex items-start gap-1.5 text-[10px]">
+                  <div key={`a-${i}`} className="flex items-start gap-1.5 text-xs">
                     <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
                     <span className="text-text-secondary">{angle}</span>
                   </div>
                 ))}
                 {creativeAnalysis.audienceSignals.topObjections.map((obj, i) => (
-                  <div key={`o-${i}`} className="flex items-start gap-1.5 text-[10px]">
+                  <div key={`o-${i}`} className="flex items-start gap-1.5 text-xs">
                     <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
                     <span className="text-text-secondary">{obj}</span>
                   </div>
@@ -596,7 +593,7 @@ export default function CreativeDetail() {
               </div>
               <div className="flex justify-between">
                 <span className="text-text-tertiary">Ad ID</span>
-                <span className="text-text-primary font-mono text-[10px]">{ad.id}</span>
+                <span className="text-text-primary font-mono text-xs">{ad.id}</span>
               </div>
             </div>
           </div>
@@ -621,7 +618,7 @@ export default function CreativeDetail() {
           {visibleCompetitors.map((comp) => (
             <div key={comp.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-border-light hover:border-purple-200 transition-colors">
               <div className="w-20 h-20 rounded-lg shrink-0 relative overflow-hidden" style={{ background: comp.thumbnail }}>
-                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-[9px] text-white font-medium">
+                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-xs text-white font-medium">
                   {comp.format}
                 </div>
               </div>
@@ -629,11 +626,11 @@ export default function CreativeDetail() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-text-primary">{comp.brand}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full font-medium">
+                    <span className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full font-medium">
                       {comp.type}
                     </span>
                     {comp.isActive && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full font-medium">
+                      <span className="text-xs px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full font-medium">
                         Active
                       </span>
                     )}
@@ -643,7 +640,7 @@ export default function CreativeDetail() {
                   </span>
                 </div>
                 <p className="text-xs text-text-secondary leading-relaxed mb-2">{comp.observation}</p>
-                <div className="flex items-center gap-4 text-[11px] text-text-tertiary">
+                <div className="flex items-center gap-4 text-xs text-text-tertiary">
                   <span>{comp.platform}</span>
                   <span>Est. Spend: {formatCurrency(comp.estimatedSpend)}</span>
                   <span>Est. Impressions: {formatNumber(comp.estimatedImpressions)}</span>
@@ -661,7 +658,7 @@ export default function CreativeDetail() {
         {competitors.length > 3 && (
           <button
             onClick={() => setShowAllCompetitors(!showAllCompetitors)}
-            className="mt-4 w-full flex items-center justify-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 py-2"
+            className="mt-4 w-full flex items-center justify-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors"
           >
             {showAllCompetitors ? (
               <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>

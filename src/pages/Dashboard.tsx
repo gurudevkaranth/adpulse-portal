@@ -16,6 +16,7 @@ import { formatCurrency, formatNumber, formatRoas, getRankChange } from '../util
 import MetricCard from '../components/shared/MetricCard';
 import ScoreRing from '../components/shared/ScoreRing';
 import GradeBadge from '../components/shared/GradeBadge';
+import { PageSkeleton } from '../components/shared/LoadingSkeleton';
 
 const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'];
 
@@ -59,55 +60,59 @@ export default function Dashboard() {
   const scalingCount = ads.filter(a => a.status === 'Scaling').length;
   const decliningCount = ads.filter(a => a.status === 'Declining').length;
 
+  if (dashboard.loading) {
+    return <PageSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Creative Dashboard</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Creative Dashboard</h1>
           <p className="text-sm text-text-secondary mt-0.5">
             Performance overview across {ads.length} active creatives
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-medium" role="status">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" aria-hidden="true" />
             {scalingCount} Scaling
           </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 rounded-full text-xs font-medium">
-            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 rounded-full text-xs font-medium" role="status">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" aria-hidden="true" />
             {decliningCount} Declining
           </span>
         </div>
       </div>
 
-      {/* Metric Cards (production-style) */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Metric Cards — responsive grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.slice(0, 4).map((card) => (
           <MetricCard key={card.title} {...card} />
         ))}
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.slice(4, 8).map((card) => (
           <MetricCard key={card.title} {...card} />
         ))}
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Charts row — responsive: stack on medium, side-by-side on large */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue & Spend Trend */}
-        <div className="col-span-2 bg-white rounded-xl border border-border p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h3 className="text-sm font-semibold text-text-primary">Revenue & Spend Trend</h3>
             <div className="flex items-center gap-4 text-xs text-text-tertiary">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary-500" /> Revenue
+                <span className="w-2 h-2 rounded-full bg-primary-500" aria-hidden="true" /> Revenue
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-500" /> Spend
+                <span className="w-2 h-2 rounded-full bg-purple-500" aria-hidden="true" /> Spend
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-4 h-0 border-t-2 border-dashed border-gray-300" /> Prev Period
+                <span className="w-4 h-0 border-t-2 border-dashed border-gray-300" aria-hidden="true" /> Prev Period
               </span>
             </div>
           </div>
@@ -127,10 +132,8 @@ export default function Dashboard() {
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
               <Tooltip content={<CustomTooltip />} />
-              {/* Previous period - dashed lines behind */}
               <Area type="monotone" dataKey="prevRevenue" name="Prev Revenue" stroke="#93c5fd" strokeWidth={1.5} strokeDasharray="4 3" fill="none" dot={false} />
               <Area type="monotone" dataKey="prevSpend" name="Prev Spend" stroke="#c4b5fd" strokeWidth={1.5} strokeDasharray="4 3" fill="none" dot={false} />
-              {/* Current period */}
               <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" fill="url(#gradRevenue)" strokeWidth={2} />
               <Area type="monotone" dataKey="spend" name="Spend" stroke="#8b5cf6" fill="url(#gradSpend)" strokeWidth={2} />
             </AreaChart>
@@ -138,7 +141,7 @@ export default function Dashboard() {
         </div>
 
         {/* Platform Breakdown */}
-        <div className="bg-white rounded-xl border border-border p-5">
+        <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
           <h3 className="text-sm font-semibold text-text-primary mb-4">Platform Breakdown</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={platformData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
@@ -157,7 +160,7 @@ export default function Dashboard() {
             {platformData.map((p, i) => (
               <div key={p.platform} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ background: CHART_COLORS[i] }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: CHART_COLORS[i] }} aria-hidden="true" />
                   <span className="text-text-secondary">{p.platform}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -170,32 +173,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Performance Shifts + Leaderboard row */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Performance Shifts + Leaderboard — responsive */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Performance Shifts */}
-        <div className="bg-white rounded-xl border border-border p-5">
+        <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-text-primary">Performance Shifts</h3>
             <Link
               to="/creatives"
-              className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors"
             >
               View all <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-1">
             {ads
               .filter(a => a.status === 'Scaling' || a.status === 'Declining')
               .slice(0, 6)
               .map((ad) => (
-                <div key={ad.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={ad.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-tertiary transition-colors">
                   <div
                     className="w-10 h-10 rounded-lg shrink-0"
                     style={{ background: ad.thumbnail }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-text-primary truncate">{ad.name}</div>
-                    <div className="text-[11px] text-text-tertiary">{ad.platform} &middot; {ad.campaign}</div>
+                    <div className="text-xs text-text-tertiary">{ad.platform} &middot; {ad.campaign}</div>
                   </div>
                   <div className={`flex items-center gap-1 text-xs font-medium ${
                     ad.status === 'Scaling' ? 'text-green-600' : 'text-red-600'
@@ -210,25 +213,25 @@ export default function Dashboard() {
         </div>
 
         {/* Weekly Leaderboard */}
-        <div className="bg-white rounded-xl border border-border p-5">
+        <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-text-primary">Weekly Leaderboard</h3>
             <Link
               to="/top-performers"
-              className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors"
             >
               Full report <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {leaderboard.slice(0, 7).map((ad) => {
               const rankChange = getRankChange(ad.rank, ad.previousRank);
               return (
-                <div key={ad.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={ad.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-tertiary transition-colors">
                   <div className="w-6 text-center">
                     <span className="text-sm font-bold text-text-primary">#{ad.rank}</span>
                   </div>
-                  <div className="w-4">
+                  <div className="w-4" aria-label={`Rank ${rankChange.direction}`}>
                     {rankChange.direction === 'up' && (
                       <ArrowUpRight className="w-3.5 h-3.5 text-green-500" />
                     )}
@@ -245,7 +248,7 @@ export default function Dashboard() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-text-primary truncate">{ad.name}</div>
-                    <div className="text-[11px] text-text-tertiary">{ad.platform}</div>
+                    <div className="text-xs text-text-tertiary">{ad.platform}</div>
                   </div>
                   <GradeBadge score={ad.overallScore} size="sm" />
                   <ScoreRing score={ad.overallScore} size={36} strokeWidth={3} />
@@ -256,14 +259,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Funnel */}
-      <div className="bg-white rounded-xl border border-border p-5">
+      {/* Funnel — responsive stages */}
+      <div className="bg-white rounded-xl border border-border p-5 hover:shadow-sm transition-shadow">
         <h3 className="text-sm font-semibold text-text-primary mb-4">Creative Funnel Performance</h3>
-        <div className="flex items-end justify-between gap-2 px-4">
+        <div className="flex items-end justify-between gap-2 px-4 overflow-x-auto">
           {funnelData.map((stage, i) => {
             const height = Math.max(30, (stage.rate / funnelData[0].rate) * 200);
             return (
-              <div key={stage.stage} className="flex-1 flex flex-col items-center gap-2">
+              <div key={stage.stage} className="flex-1 min-w-[60px] flex flex-col items-center gap-2">
                 <div className="text-xs font-semibold text-text-primary">
                   {formatNumber(stage.value)}
                 </div>
@@ -274,10 +277,10 @@ export default function Dashboard() {
                     background: `linear-gradient(180deg, ${CHART_COLORS[i % CHART_COLORS.length]}dd, ${CHART_COLORS[i % CHART_COLORS.length]}88)`,
                   }}
                 />
-                <div className="text-[10px] text-text-tertiary text-center leading-tight">
+                <div className="text-xs text-text-tertiary text-center leading-tight">
                   {stage.stage}
                 </div>
-                <div className="text-[10px] font-medium text-text-secondary">
+                <div className="text-xs font-medium text-text-secondary">
                   {stage.rate}%
                 </div>
               </div>

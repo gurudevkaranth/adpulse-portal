@@ -40,7 +40,7 @@ export default function MetricCard({ title, value, prevValue, change, sparklineD
         </div>
         <div className="flex items-center gap-2">
           {grade && <GradeBadge grade={grade} size="sm" />}
-          <button className="text-[10px] text-primary-500 font-medium flex items-center gap-0.5 hover:text-primary-700 transition-colors">
+          <button className="text-xs text-primary-500 font-medium flex items-center gap-0.5 hover:text-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded">
             <PlusCircle className="w-3 h-3" />
             Set target
           </button>
@@ -57,7 +57,7 @@ export default function MetricCard({ title, value, prevValue, change, sparklineD
           {change >= 0 ? '+' : ''}{change?.toFixed(2)}%
         </span>
       </div>
-      <div className="text-[10px] text-text-tertiary mt-0.5">Was {formattedPrev}</div>
+      <div className="text-xs text-text-tertiary mt-0.5">Was {formattedPrev}</div>
 
       {/* Sparkline */}
       {sparklineData && (
