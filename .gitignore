@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Environment (local overrides only — .env.example and stage configs are tracked)
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +26,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.claude/worktrees/

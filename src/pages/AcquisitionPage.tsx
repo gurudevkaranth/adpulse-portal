@@ -1,10 +1,8 @@
-import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import {
-  generateAds, generateHierarchicalData, generateLandingPageData,
-  generateChannelChartData,
-} from '../data/mockData';
-import type { Ad, Campaign, LandingPage, ChannelChartData } from '../types';
+import { useAdsWithScores } from '../hooks/useAds';
+import { useChannels } from '../hooks/useChannels';
+import { useCampaigns } from '../hooks/useCampaigns';
+import { useLandingPages } from '../hooks/useLandingPages';
 
 import ChannelsTab from '../components/acquisition/ChannelsTab';
 import CreativesTab from '../components/acquisition/CreativesTab';
@@ -14,40 +12,32 @@ import LandingPagesTab from '../components/acquisition/LandingPagesTab';
 import TopPerformersTab from '../components/acquisition/TopPerformersTab';
 import ComparativeTab from '../components/acquisition/ComparativeTab';
 
-interface OutletContext {
-  filters: Record<string, string>;
-  setFilters: (filters: Record<string, string>) => void;
-  activeSubTab: string;
-  setActiveSubTab: (tab: string) => void;
-}
-
 export default function AcquisitionPage() {
-  const { filters, setFilters, activeSubTab } = useOutletContext<OutletContext>();
+  const { filters, setFilters, activeSubTab } = useOutletContext();
 
-  // Single shared data source
-  const ads = useMemo(() => generateAds(30) as Ad[], []);
-  const campaigns = useMemo(() => generateHierarchicalData(ads) as Campaign[], [ads]);
-  const landingPages = useMemo(() => generateLandingPageData(ads) as LandingPage[], [ads]);
-  const channelChart = useMemo(() => generateChannelChartData(7) as ChannelChartData, []);
+  const ads = useAdsWithScores(filters);
+  const channels = useChannels(filters);
+  const campaigns = useCampaigns(filters);
+  const landingPages = useLandingPages(filters);
 
   const renderSubTab = () => {
     switch (activeSubTab) {
       case 'channels':
-        return <ChannelsTab channelChart={channelChart} filters={filters} onFiltersChange={setFilters} />;
+        return <ChannelsTab channelChart={channels.data} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
       case 'creatives':
-        return <CreativesTab ads={ads} filters={filters} onFiltersChange={setFilters} />;
+        return <CreativesTab ads={ads.data || []} filters={filters} onFiltersChange={setFilters} loading={ads.loading} />;
       case 'campaigns':
-        return <CampaignsTab data={campaigns} filters={filters} onFiltersChange={setFilters} />;
+        return <CampaignsTab data={campaigns.data || { campaigns: [] }} filters={filters} onFiltersChange={setFilters} loading={campaigns.loading} />;
       case 'adSets':
-        return <AdSetsTab campaigns={campaigns} filters={filters} onFiltersChange={setFilters} />;
+        return <AdSetsTab campaigns={campaigns.data || { campaigns: [] }} filters={filters} onFiltersChange={setFilters} loading={campaigns.loading} />;
       case 'landingPages':
-        return <LandingPagesTab data={landingPages} filters={filters} onFiltersChange={setFilters} />;
+        return <LandingPagesTab data={landingPages.data || []} filters={filters} onFiltersChange={setFilters} loading={landingPages.loading} />;
       case 'topPerformers':
-        return <TopPerformersTab ads={ads} />;
+        return <TopPerformersTab ads={ads.data || []} loading={ads.loading} />;
       case 'comparative':
-        return <ComparativeTab ads={ads} />;
+        return <ComparativeTab ads={ads.data || []} loading={ads.loading} />;
       default:
-        return <ChannelsTab channelChart={channelChart} filters={filters} onFiltersChange={setFilters} />;
+        return <ChannelsTab channelChart={channels.data} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
     }
   };
 

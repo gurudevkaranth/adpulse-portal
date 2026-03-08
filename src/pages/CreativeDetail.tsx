@@ -1,23 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft, ExternalLink, TrendingUp, TrendingDown, Minus,
-  AlertTriangle, CheckCircle2, Lightbulb, Eye, Swords,
+  ArrowLeft, TrendingUp, TrendingDown, Minus,
+  AlertTriangle, CheckCircle2, Eye, Swords,
   ChevronDown, ChevronUp, BarChart3, Clock, MousePointerClick,
-  ShoppingCart, Zap, Target, Sparkles, Copy, ArrowUpRight,
-  Megaphone, Activity, Wrench, Users, MessageSquare, Heart,
-  Share2, Bookmark, Brain, ArrowRight,
+  ShoppingCart, Target, Sparkles,
+  Megaphone, Activity, Users, MessageSquare, Heart,
+  Share2, Bookmark, Brain,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import {
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
 } from 'recharts';
 import {
-  generateAds, generateAdPerformanceHistory, generateCompetitiveInsights,
-  generateAIRecommendations, generatePerformanceSummary, getScoreColor,
-  generateCreativeAnalysis,
+  generateCompetitiveInsights, getScoreColor,
 } from '../data/mockData';
+import { useCreativeDetail } from '../hooks/useCreativeDetail';
 import {
   formatCurrency, formatNumber, formatPercent, formatRoas,
   getScoreColorClass, getStatusColor, timeAgo,
@@ -26,24 +24,9 @@ import ScoreRing from '../components/shared/ScoreRing';
 import AdThumbnail from '../components/shared/AdThumbnail';
 import TagBadge from '../components/shared/TagBadge';
 import GradeBadge from '../components/shared/GradeBadge';
-import type {
-  Ad, PerformanceHistoryPoint, CompetitiveInsight,
-  AIRecommendation, PerformanceSummary, CreativeAnalysis, CreativeFix,
-} from '../types';
 
 // Custom tooltip for charts
-interface ChartTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    dataKey: string;
-    color: string;
-    name: string;
-    value: number;
-  }>;
-  label?: string;
-}
-
-function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
+function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-lg shadow-lg border border-border p-3 text-xs">
@@ -60,12 +43,7 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
 }
 
 // Metric trend indicator
-interface MetricTrendProps {
-  current: number;
-  previous: number | null;
-}
-
-function MetricTrend({ current, previous }: MetricTrendProps) {
+function MetricTrend({ current, previous }) {
   if (!previous) return null;
   const pctChange = ((current - previous) / Math.abs(previous || 1)) * 100;
   const isUp = pctChange > 2;
@@ -81,12 +59,8 @@ function MetricTrend({ current, previous }: MetricTrendProps) {
 }
 
 // Priority badge for recommendations
-interface PriorityBadgeProps {
-  priority: 'high' | 'medium' | 'low';
-}
-
-function PriorityBadge({ priority }: PriorityBadgeProps) {
-  const styles: Record<string, string> = {
+function PriorityBadge({ priority }) {
+  const styles = {
     high: 'bg-red-50 text-red-700 border-red-200',
     medium: 'bg-amber-50 text-amber-700 border-amber-200',
     low: 'bg-green-50 text-green-700 border-green-200',
@@ -99,38 +73,39 @@ function PriorityBadge({ priority }: PriorityBadgeProps) {
 }
 
 // Chart metric selector
-interface ChartMetricConfig {
-  key: string;
-  label: string;
-  format: (v: number) => string;
-}
-
-const CHART_METRICS: ChartMetricConfig[] = [
-  { key: 'spend', label: 'Spend', format: (v: number) => `$${v}` },
-  { key: 'revenue', label: 'Revenue', format: (v: number) => `$${v}` },
-  { key: 'roas', label: 'ROAS', format: (v: number) => `${v}x` },
-  { key: 'ctr', label: 'CTR', format: (v: number) => `${v}%` },
-  { key: 'cpa', label: 'CPA', format: (v: number) => `$${v}` },
-  { key: 'conversions', label: 'Conversions', format: (v: number) => String(v) },
-  { key: 'thumbstopRate', label: 'Thumbstop', format: (v: number) => `${v}%` },
-  { key: 'impressions', label: 'Impressions', format: (v: number) => formatNumber(v) },
+const CHART_METRICS = [
+  { key: 'spend', label: 'Spend', format: v => `$${v}` },
+  { key: 'revenue', label: 'Revenue', format: v => `$${v}` },
+  { key: 'roas', label: 'ROAS', format: v => `${v}x` },
+  { key: 'ctr', label: 'CTR', format: v => `${v}%` },
+  { key: 'cpa', label: 'CPA', format: v => `$${v}` },
+  { key: 'conversions', label: 'Conversions', format: v => v },
+  { key: 'thumbstopRate', label: 'Thumbstop', format: v => `${v}%` },
+  { key: 'impressions', label: 'Impressions', format: v => formatNumber(v) },
 ];
 
 export default function CreativeDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [activeChart, setActiveChart] = useState<string>('roas');
-  const [expandedRec, setExpandedRec] = useState<string | null>(null);
-  const [showAllCompetitors, setShowAllCompetitors] = useState<boolean>(false);
+  const [activeChart, setActiveChart] = useState('roas');
+  const [expandedRec, setExpandedRec] = useState(null);
+  const [showAllCompetitors, setShowAllCompetitors] = useState(false);
 
-  // Generate data
-  const allAds = useMemo(() => generateAds(30) as Ad[], []);
-  const ad = useMemo(() => allAds.find(a => a.id === id), [allAds, id]);
-  const history = useMemo(() => ad ? generateAdPerformanceHistory(ad) as PerformanceHistoryPoint[] : [], [ad]);
-  const competitors = useMemo(() => ad ? generateCompetitiveInsights(ad) as CompetitiveInsight[] : [], [ad]);
-  const recommendations = useMemo(() => ad ? generateAIRecommendations(ad) as AIRecommendation[] : [], [ad]);
-  const performanceSummary = useMemo(() => ad ? generatePerformanceSummary(ad) as PerformanceSummary : { strengths: [], weaknesses: [] }, [ad]);
-  const creativeAnalysis = useMemo(() => ad ? generateCreativeAnalysis(ad) as CreativeAnalysis | null : null, [ad]);
+  // Fetch data via hook (uses mock when VITE_USE_MOCK_DATA=true)
+  const detail = useCreativeDetail(id);
+  const ad = detail.data?.ad;
+  const history = detail.data?.history || [];
+  const competitors = useMemo(() => ad ? generateCompetitiveInsights(ad) : [], [ad]);
+  const performanceSummary = detail.data?.summary || { strengths: [], weaknesses: [] };
+  const creativeAnalysis = detail.data?.analysis || null;
+
+  if (detail.loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!ad) {
     return (
@@ -148,23 +123,14 @@ export default function CreativeDetail() {
   // Calculate 7d trend from history
   const recent7 = history.slice(-7);
   const prior7 = history.slice(-14, -7);
-  const avg = (arr: PerformanceHistoryPoint[], key: keyof PerformanceHistoryPoint): number =>
-    arr.reduce((s, d) => s + (d[key] as number), 0) / (arr.length || 1);
+  const avg = (arr, key) => arr.reduce((s, d) => s + d[key], 0) / (arr.length || 1);
 
-  const chartMetric = CHART_METRICS.find(m => m.key === activeChart)!;
+  const chartMetric = CHART_METRICS.find(m => m.key === activeChart);
 
   // Score breakdown data
-  interface FunnelStageInfo {
-    label: string;
-    score: number;
-    icon: LucideIcon;
-    desc: string;
-    metrics: string[];
-  }
-
-  const funnelStages: FunnelStageInfo[] = [
+  const funnelStages = [
     { label: 'Hook', score: ad.scores.hookScore, icon: Eye, desc: 'Captures attention in feed', metrics: [`Thumbstop: ${ad.metrics.thumbstopRate}%`, `1st Frame Ret: ${ad.metrics.firstFrameRetention}%`] },
-    { label: 'Watch', score: ad.scores.watchScore, icon: Clock, desc: 'Holds viewer attention', metrics: [`Avg Watch: ${ad.metrics.avgWatchTime}s`, ad.metrics.videoRetention15s ? `15s Ret: ${ad.metrics.videoRetention15s}%` : null, ad.metrics.thruplayRate ? `Thruplay: ${ad.metrics.thruplayRate}%` : null].filter(Boolean) as string[] },
+    { label: 'Watch', score: ad.scores.watchScore, icon: Clock, desc: 'Holds viewer attention', metrics: [`Avg Watch: ${ad.metrics.avgWatchTime}s`, ad.metrics.videoRetention15s ? `15s Ret: ${ad.metrics.videoRetention15s}%` : null, ad.metrics.thruplayRate ? `Thruplay: ${ad.metrics.thruplayRate}%` : null].filter(Boolean) },
     { label: 'Click', score: ad.scores.clickScore, icon: MousePointerClick, desc: 'Drives action & clicks', metrics: [`CTR: ${ad.metrics.ctr}%`, `Link Clicks: ${ad.metrics.linkClickRate}%`] },
     { label: 'Convert', score: ad.scores.convertScore, icon: ShoppingCart, desc: 'Generates conversions', metrics: [`Conv Rate: ${ad.metrics.conversionRate}%`, `ROAS: ${ad.metrics.roas}x`, `CPA: $${ad.metrics.cpa.toFixed(2)}`] },
     { label: 'Reach', score: ad.scores.reachScore, icon: Megaphone, desc: 'Audience reach efficiency', metrics: [`Reach: ${formatNumber(ad.metrics.estimatedReach)}`, `CPM: $${ad.metrics.cpm.toFixed(2)}`, `Frequency: ${ad.metrics.frequency}x`] },
@@ -275,7 +241,7 @@ export default function CreativeDetail() {
         <div className="grid grid-cols-6 gap-4">
           {funnelStages.map((stage) => {
             const Icon = stage.icon;
-            const color = getScoreColor(stage.score) as string;
+            const color = getScoreColor(stage.score);
             const stageGrade = stage.score >= 80 ? 'A' : stage.score >= 60 ? 'B' : stage.score >= 40 ? 'C' : 'D';
             return (
               <div key={stage.label} className="p-4 rounded-lg bg-gray-50 border border-border-light text-center">
@@ -426,7 +392,7 @@ export default function CreativeDetail() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {creativeAnalysis.fixes.map((fix, idx) => {
-                  const iconMap: Record<string, { icon: LucideIcon; gradient: string }> = {
+                  const iconMap = {
                     Hook: { icon: Eye, gradient: 'from-violet-500 to-purple-600' },
                     Retention: { icon: Clock, gradient: 'from-blue-500 to-cyan-600' },
                     CTA: { icon: MousePointerClick, gradient: 'from-emerald-500 to-teal-600' },
@@ -578,12 +544,12 @@ export default function CreativeDetail() {
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-2 mb-3">
-                {([
+                {[
                   { label: 'Likes', value: creativeAnalysis.audienceSignals.engagementBreakdown.likes, icon: Heart, color: 'text-red-400' },
                   { label: 'Comments', value: creativeAnalysis.audienceSignals.engagementBreakdown.comments, icon: MessageSquare, color: 'text-blue-400' },
                   { label: 'Shares', value: creativeAnalysis.audienceSignals.engagementBreakdown.shares, icon: Share2, color: 'text-green-400' },
                   { label: 'Saves', value: creativeAnalysis.audienceSignals.engagementBreakdown.saves, icon: Bookmark, color: 'text-purple-400' },
-                ] as const).map(({ label, value, icon: SigIcon, color }) => (
+                ].map(({ label, value, icon: SigIcon, color }) => (
                   <div key={label} className="text-center p-2 bg-gray-50 rounded-lg">
                     <SigIcon className={`w-3.5 h-3.5 ${color} mx-auto mb-1`} />
                     <div className="text-xs font-bold text-text-primary">{formatNumber(value)}</div>

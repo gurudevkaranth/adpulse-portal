@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import {
-  TrendingUp, ArrowUpRight, ArrowDownRight, Minus,
+  ArrowUpRight, ArrowDownRight, Minus,
   ChevronRight,
 } from 'lucide-react';
 import {
@@ -9,35 +9,17 @@ import {
   BarChart, Bar, Cell,
 } from 'recharts';
 import {
-  generateAds, generateTrendData, generatePlatformBreakdown,
-  generateFunnelData, generateWeeklyLeaderboard, generateMetricCardData,
+  generateTrendData, generateWeeklyLeaderboard, generateMetricCardData,
 } from '../data/mockData';
-import { formatCurrency, formatNumber, formatRoas, getStatusColor, getRankChange } from '../utils/formatters';
+import { useDashboardData } from '../hooks/useDashboardData';
+import { formatCurrency, formatNumber, formatRoas, getRankChange } from '../utils/formatters';
 import MetricCard from '../components/shared/MetricCard';
 import ScoreRing from '../components/shared/ScoreRing';
 import GradeBadge from '../components/shared/GradeBadge';
-import type { Ad, LeaderboardEntry, FunnelStage, TrendDataPoint } from '../types';
-
-interface OutletContext {
-  filters: Record<string, string>;
-  setFilters: (filters: Record<string, string>) => void;
-  activeSubTab: string;
-  setActiveSubTab: (tab: string) => void;
-}
 
 const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'];
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    color: string;
-    name: string;
-    value: number;
-  }>;
-  label?: string;
-}
-
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-lg shadow-lg border border-border p-3 text-xs">
@@ -56,19 +38,22 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 export default function Dashboard() {
-  const { filters } = useOutletContext<OutletContext>();
+  const { filters } = useOutletContext();
 
-  const ads = useMemo(() => generateAds(30) as Ad[], []);
-  const currentTrend = useMemo(() => generateTrendData(30) as TrendDataPoint[], []);
-  const previousTrend = useMemo(() => generateTrendData(30) as TrendDataPoint[], []);
-  const trendData = useMemo(() => currentTrend.map((d, i) => ({
-    ...d,
+  const dashboard = useDashboardData(filters);
+  const d = dashboard.data;
+  const ads = useMemo(() => d?.ads || [], [d]);
+  const platformData = useMemo(() => d?.platforms || [], [d]);
+  const funnelData = useMemo(() => d?.funnel || [], [d]);
+
+  const currentTrend = useMemo(() => d?.trends || generateTrendData(30), [d]);
+  const previousTrend = useMemo(() => generateTrendData(30), []);
+  const trendData = useMemo(() => currentTrend.map((item, i) => ({
+    ...item,
     prevRevenue: previousTrend[i]?.revenue || 0,
     prevSpend: previousTrend[i]?.spend || 0,
   })), [currentTrend, previousTrend]);
-  const platformData = useMemo(() => generatePlatformBreakdown() as Array<{ platform: string; spend: number; revenue: number; roas: number }>, []);
-  const funnelData = useMemo(() => generateFunnelData() as FunnelStage[], []);
-  const leaderboard = useMemo(() => generateWeeklyLeaderboard(ads) as LeaderboardEntry[], [ads]);
+  const leaderboard = useMemo(() => generateWeeklyLeaderboard(ads), [ads]);
   const metricCards = useMemo(() => generateMetricCardData(), []);
 
   const scalingCount = ads.filter(a => a.status === 'Scaling').length;
@@ -98,13 +83,13 @@ export default function Dashboard() {
 
       {/* Metric Cards (production-style) */}
       <div className="grid grid-cols-4 gap-4">
-        {metricCards.slice(0, 4).map((card: Record<string, unknown>) => (
-          <MetricCard key={card.title as string} {...card as any} />
+        {metricCards.slice(0, 4).map((card) => (
+          <MetricCard key={card.title} {...card} />
         ))}
       </div>
       <div className="grid grid-cols-4 gap-4">
-        {metricCards.slice(4, 8).map((card: Record<string, unknown>) => (
-          <MetricCard key={card.title as string} {...card as any} />
+        {metricCards.slice(4, 8).map((card) => (
+          <MetricCard key={card.title} {...card} />
         ))}
       </div>
 
@@ -140,7 +125,7 @@ export default function Dashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
               <Tooltip content={<CustomTooltip />} />
               {/* Previous period - dashed lines behind */}
               <Area type="monotone" dataKey="prevRevenue" name="Prev Revenue" stroke="#93c5fd" strokeWidth={1.5} strokeDasharray="4 3" fill="none" dot={false} />
@@ -158,11 +143,11 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={platformData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
               <YAxis type="category" dataKey="platform" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} axisLine={false} tickLine={false} width={55} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="revenue" name="Revenue" radius={[0, 4, 4, 0]} barSize={18}>
-                {platformData.map((_: unknown, i: number) => (
+                {platformData.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i]} />
                 ))}
               </Bar>
