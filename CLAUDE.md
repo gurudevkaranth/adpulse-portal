@@ -6,24 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AdPulse Portal is an ad analytics dashboard built with React 19, Vite 7, Tailwind CSS 4, and React Router 7. It provides creative performance analysis across advertising platforms (Meta, TikTok, Google, YouTube) with scoring, grading, and comparative views. All data is currently mock-generated (`src/data/mockData.js`).
 
+## Prerequisites
+
+- **Node.js 20+** required (Vite 7, Vitest 4, React Router 7 all require it)
+- Use `nvm` to switch: `nvm use 20` (v20.20.0 is installed)
+- Set default to avoid forgetting: `nvm alias default 20`
+
 ## Commands
 
 ```bash
-npm run dev       # Start dev server (Vite)
-npm run build     # Production build
-npm run lint      # ESLint
-npm run preview   # Preview production build
-npm run test      # Run tests (Vitest)
-npm run test:watch # Run tests in watch mode
+nvm use 20              # Ensure correct Node version
+npm install             # Install dependencies
+npm run dev             # Start dev server (Vite)
+npm run build           # Production build
+npm run lint            # ESLint
+npm run typecheck       # TypeScript check (tsc --noEmit)
+npm run preview         # Preview production build
+npm run test            # Run tests (Vitest)
+npm run test:watch      # Run tests in watch mode
 ```
 
 Tests use Vitest with jsdom, React Testing Library, and `@testing-library/jest-dom`. Config is in `vitest.config.js` (separate from `vite.config.js` to avoid loading Tailwind CSS plugin in test environment). Test setup file: `tests/setup.js`. Test files use `.test.jsx` extension for JSX support.
+
+## Deployment
+
+Cloud Run on GCP project `otb-dev-platform`, region `us-central1`.
+
+```bash
+# QA — uses .env.production (Vite production mode)
+gcloud run deploy adpulse-web-qa --source=. --region=us-central1 --project=otb-dev-platform --allow-unauthenticated --port=8080
+
+# Prod
+gcloud run deploy adpulse-web --source=. --region=us-central1 --project=otb-dev-platform --allow-unauthenticated --port=8080
+```
+
+- QA URL: `https://adpulse-web-qa-zqlsaqunba-uc.a.run.app`
+- Prod URL: `https://adpulse-web-zqlsaqunba-uc.a.run.app`
+- Vite bakes env vars at build time. `npm run build` uses **production** mode → reads `.env.production`
+- `.dockerignore` excludes all `.env*` except `.env.production`
+- To deploy with mock data: set `VITE_USE_MOCK_DATA=true` in `.env.production`
+- To deploy with real API: set `VITE_USE_MOCK_DATA=false` and correct `VITE_API_BASE_URL`
 
 ## Architecture
 
 ### Routing & State
 
-Routes are defined in `src/config/routes.js` as a `ROUTE_CONFIG` object that drives breadcrumbs, sub-tabs, and filter bar visibility. `src/App.jsx` maps these to React Router routes.
+Routes are defined in `src/config/routes.ts` as a `ROUTE_CONFIG` object that drives breadcrumbs, sub-tabs, and filter bar visibility. `src/App.tsx` maps these to React Router routes.
 
 State flows through **React Router's Outlet Context** — `AppLayout` manages global filters, sidebar state, and active sub-tab, passing them via `<Outlet context={...}>`. Child pages consume with `useOutletContext()`. No external state library is used.
 

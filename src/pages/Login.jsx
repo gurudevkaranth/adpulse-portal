@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Mail, Building2, Shield, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../auth/useAuth';
 import apiClient from '../api/client';
 
 const BASE = import.meta.env.VITE_API_BASE_URL;
@@ -52,10 +54,18 @@ const OAUTH_PROVIDERS = [
 ];
 
 export default function Login() {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+
+  // If already authenticated (including mock mode), redirect to dashboard
+  if (!loading && isAuthenticated) {
+    const from = location.state?.from?.pathname || '/';
+    return <Navigate to={from} replace />;
+  }
 
   async function handleMagicLink(e) {
     e.preventDefault();

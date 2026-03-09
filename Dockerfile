@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Bust cache: 2026-03-09-v3
 RUN npm run build
 
 # Stage 2: Serve

@@ -23,7 +23,7 @@ export default function AcquisitionPage() {
   const renderSubTab = () => {
     switch (activeSubTab) {
       case 'channels':
-        return <ChannelsTab channelChart={channels.data} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
+        return <ChannelsTab channelChart={channels.data || { channels: [], data: [] }} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
       case 'creatives':
         return <CreativesTab ads={ads.data || []} filters={filters} onFiltersChange={setFilters} loading={ads.loading} />;
       case 'campaigns':
@@ -37,7 +37,7 @@ export default function AcquisitionPage() {
       case 'comparative':
         return <ComparativeTab ads={ads.data || []} loading={ads.loading} />;
       default:
-        return <ChannelsTab channelChart={channels.data} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
+        return <ChannelsTab channelChart={channels.data || { channels: [], data: [] }} filters={filters} onFiltersChange={setFilters} loading={channels.loading} />;
     }
   };
 
