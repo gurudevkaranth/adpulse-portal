@@ -18,21 +18,7 @@ export default function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (useMock) {
-      // In mock mode, skip auth verification and use a stub user
-      setUser({
-        id: 'mock-user',
-        name: 'Demo User',
-        email: 'demo@outoftheblue.ai',
-        tenant_id: 'outoftheblue',
-        is_agency_user: false,
-        agencies: [],
-      });
-      setLoading(false);
-    } else {
-      verify();
-    }
+    verify();
   }, [verify]);
 
   const logout = useCallback(async () => {
