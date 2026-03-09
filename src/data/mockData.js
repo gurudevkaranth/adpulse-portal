@@ -316,8 +316,8 @@ export function generateAdPerformanceHistory(ad, days = 30) {
   const baseImpressions = ad.metrics.impressions / 30;
   const baseCTR = ad.metrics.ctr;
   const baseConvRate = ad.metrics.conversionRate;
-  const baseRoas = ad.metrics.roas;
-  const baseCPA = ad.metrics.cpa;
+  const _BaseRoas = ad.metrics.roas;
+  const _BaseCPA = ad.metrics.cpa;
   const baseThumbstop = ad.metrics.thumbstopRate;
 
   // Determine trajectory: scaling ads trend up, declining trend down
@@ -382,7 +382,7 @@ const competitorActions = [
   'Featuring micro-influencer reviews with authentic settings, lower CPA than brand content',
 ];
 
-export function generateCompetitiveInsights(ad) {
+export function generateCompetitiveInsights(_ad) {
   const count = randInt(3, 6);
   const insights = [];
 
@@ -416,7 +416,7 @@ export function generateCompetitiveInsights(ad) {
   return insights;
 }
 
-const recommendationCategories = [
+const _RecommendationCategories = [
   { category: 'Hook', icon: '🎯' },
   { category: 'Creative', icon: '🎨' },
   { category: 'Targeting', icon: '👥' },
