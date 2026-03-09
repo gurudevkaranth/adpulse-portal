@@ -9,25 +9,25 @@ set -euo pipefail
 PROJECT="otb-dev-platform"
 REGION="us-central1"
 
-echo "Creating domain mapping: adpulse.app.outoftheblue.ai -> adpulse-web (prod)"
+echo "Creating domain mapping: adwatch.app.outoftheblue.ai -> adpulse-web (prod)"
 gcloud beta run domain-mappings create \
   --service=adpulse-web \
-  --domain=adpulse.app.outoftheblue.ai \
+  --domain=adwatch.app.outoftheblue.ai \
   --region="$REGION" \
   --project="$PROJECT"
 
 echo ""
-echo "Creating domain mapping: qa.adpulse.app.outoftheblue.ai -> adpulse-web-qa (QA)"
+echo "Creating domain mapping: qa.adwatch.app.outoftheblue.ai -> adpulse-web-qa (QA)"
 gcloud beta run domain-mappings create \
   --service=adpulse-web-qa \
-  --domain=qa.adpulse.app.outoftheblue.ai \
+  --domain=qa.adwatch.app.outoftheblue.ai \
   --region="$REGION" \
   --project="$PROJECT"
 
 echo ""
 echo "Domain mappings created. Next steps:"
 echo "1. Add Cloudflare CNAME records (proxy OFF):"
-echo "   adpulse.app.outoftheblue.ai    -> ghs.googlehosted.com"
-echo "   qa.adpulse.app.outoftheblue.ai -> ghs.googlehosted.com"
+echo "   adwatch.app.outoftheblue.ai    -> ghs.googlehosted.com"
+echo "   qa.adwatch.app.outoftheblue.ai -> ghs.googlehosted.com"
 echo "2. Wait 5-15 minutes for Google-managed TLS certificate provisioning"
-echo "3. Verify with: curl -s -o /dev/null -w '%{http_code}' https://adpulse.app.outoftheblue.ai"
+echo "3. Verify with: curl -s -o /dev/null -w '%{http_code}' https://adwatch.app.outoftheblue.ai"

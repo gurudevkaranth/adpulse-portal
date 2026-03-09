@@ -63,7 +63,7 @@ feature/your-feature  →  development (QA)  →  main (Prod)
 
 5. Get review, then squash merge to `development`.
 
-6. `development` auto-deploys to QA at `qa.adpulse.app.outoftheblue.ai`.
+6. `development` auto-deploys to QA at `qa.adwatch.app.outoftheblue.ai`.
 
 ## Available Commands
 
@@ -144,7 +144,7 @@ Local development uses `.env.development` which points to the QA backend for aut
 | Environment | URL | Trigger |
 |---|---|---|
 | Dev | `localhost:5173` | `npm run dev` |
-| QA | `qa.adpulse.app.outoftheblue.ai` | Push to `development` |
-| Prod | `adpulse.app.outoftheblue.ai` | Push to `main` |
+| QA | `qa.adwatch.app.outoftheblue.ai` | Push to `development` |
+| Prod | `adwatch.app.outoftheblue.ai` | Push to `main` |
 
 CI/CD is handled by GitHub Actions → Cloud Run (GCP).
