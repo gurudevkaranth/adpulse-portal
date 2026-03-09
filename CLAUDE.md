@@ -72,7 +72,9 @@ Refer to `STYLE_GUIDE.md` for the full design system. Key points:
 
 ## Conventions
 
-- **Language**: JavaScript (JSX), not TypeScript
+- **Language**: TypeScript (TSX) for components/config/utils, JavaScript (JSX) for auth/API/hooks (migration in progress)
 - **Styling**: Tailwind utility classes only — no CSS modules or styled-components
 - **Exports**: Named exports for utilities, default exports for components
 - **ESLint**: Flat config (v9+), unused vars allowed if prefixed with uppercase or underscore
+- **Auth**: Always uses real OAuth (no mock bypass). `VITE_USE_MOCK_DATA` only controls whether data hooks return mock or real API data. Local dev points to QA backend (`qa.app.outoftheblue.ai`) for auth.
+- **API hooks**: `useApiQuery` pattern with mock fallback — always provide null-safe fallback values (e.g. `data || []`)
