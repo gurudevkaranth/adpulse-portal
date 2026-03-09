@@ -36,13 +36,19 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
+      - name: Set QA env vars for build
+        run: |
+          cat > .env.production << 'EOF'
+          VITE_API_BASE_URL=https://qa.app.outoftheblue.ai
+          VITE_USE_MOCK_DATA=false
+          EOF
       - run: |
           gcloud run deploy adpulse-web-qa \
             --source=. \
             --region=us-central1 \
             --project=otb-dev-platform \
             --allow-unauthenticated \
-            --set-env-vars="VITE_API_BASE_URL=https://qa.app.outoftheblue.ai"
+            --port=8080
 
   deploy-prod:
     needs: lint-typecheck-build
@@ -58,10 +64,16 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
+      - name: Ensure prod env vars for build
+        run: |
+          cat > .env.production << 'EOF'
+          VITE_API_BASE_URL=https://app.outoftheblue.ai
+          VITE_USE_MOCK_DATA=false
+          EOF
       - run: |
           gcloud run deploy adpulse-web \
             --source=. \
             --region=us-central1 \
             --project=otb-dev-platform \
             --allow-unauthenticated \
-            --set-env-vars="VITE_API_BASE_URL=https://app.outoftheblue.ai"
+            --port=8080
