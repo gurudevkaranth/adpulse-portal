@@ -115,3 +115,19 @@ if (!loading && isAuthenticated) {
 **Fix:** Don't launch nested `claude` instances from within a Claude Code session. Instead, use **parallel subagents** (Agent tool) which run within the same process. Alternatively, launch tmux agents from a plain terminal (not from within Claude Code).
 
 **Key insight:** Subagents can edit files but cannot run `git commit` (Bash denied). The parent session must handle commits for subagent work.
+
+---
+
+## 10. WIF deploy needs serviceUsageConsumer role
+
+**Symptom:** `gcloud run deploy` in GitHub Actions fails with `PERMISSION_DENIED: Build failed because the default service account is missing required IAM permissions`.
+
+**Root cause:** The service account used by WIF (`github-runner-sa`) was missing `roles/serviceusage.serviceUsageConsumer`. Cloud Build requires this to use project APIs.
+
+**Fix:** Grant the full set of roles needed for `gcloud run deploy --source`:
+- `roles/run.admin` (create/update Cloud Run services)
+- `roles/cloudbuild.builds.editor` (trigger Cloud Build)
+- `roles/artifactregistry.writer` (push container images)
+- `roles/iam.serviceAccountUser` (act as runtime SA)
+- `roles/storage.admin` (Cloud Build staging bucket)
+- `roles/serviceusage.serviceUsageConsumer` (use project APIs)
